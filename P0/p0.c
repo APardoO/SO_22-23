@@ -13,6 +13,7 @@
 #include <string.h>					// Librería de tratamiento de "strings"
 #include <unistd.h>					// Librería de funcionalidades del sistema
 #include <errno.h>					// Librería de captador de errores
+#include <limits.h>					//
 #include <sys/utsname.h>			// Obtiene informacñon del sistema [LINUX]
 
 #define COMMAND_LEN		512
@@ -144,7 +145,6 @@ void getCmdLine(){
 	argLen = TrocearCadena(linea, args);
 }
 
-
 int executeCommand(const int numTrozos, char *tokens[COMMAND_LEN]){
 	int i=0;
 
@@ -208,8 +208,21 @@ int cmdPid(const int argLen, char *args[COMMAND_LEN]){
 	return 1;
 }
 
+// Done
 int cmdCarpeta(const int argLen, char *args[COMMAND_LEN]){
-	// Code
+	printf("argLen = %d\n", argLen);
+	if(argLen==1){
+		char path[COMMAND_BUFFER];
+		if(getcwd(path, COMMAND_BUFFER)==NULL)
+			printf("Error: No se pudo encontrar el directorio actual\n\n");
+		else
+			printf("%s\n\n", path);
+		return 1;
+	}
+
+	if(chdir(args[1])!=0)
+		printf("Error: Path not found\n\n");
+
 	return 1;
 }
 
