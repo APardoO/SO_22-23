@@ -13,19 +13,35 @@
 #include <string.h>					// Librería de tratamiento de "strings"
 #include <unistd.h>					// Librería de funcionalidades del sistema
 #include <errno.h>					// Librería de captador de errores
-#include <limits.h>					//
 #include <sys/utsname.h>			// Obtiene informacñon del sistema [LINUX]
 
 #define COMMAND_LEN		512
 #define COMMAND_BUFFER	4096
+
+// Definicion de tipos de la lista
+typedef struct node *Lpos;
+typedef struct node *List;
+struct node {
+	char comando[COMMAND_BUFFER];
+	struct node *next;
+};
 
 // Definiciones globales
 int argLen;						// Número de parametros del comadno introducido
 char *args[COMMAND_LEN];		// Parámetros del comando introducido
 char linea[COMMAND_BUFFER];		// String con el comando introducido
 char get_input[COMMAND_BUFFER];	// Obtiene la líne introducida por el usuario, se crea para splitearla por \n y que no se sobreescriba en la misma direccion de memoria
+List historicList;
 
 // Métodos de la implementacion de la lista
+List createList();											// Devuelve una lista vacía
+int isEmptyList(List l);									// Comprueba si la lista está vacía
+Lpos firstElement(List l);									// Devuelve la primera posicion de la lista
+Lpos nextElement(List l, Lpos p);							// Devuelve la siguiente posicion de la lsita si es válida
+int insertElement(List l, char element[COMMAND_BUFFER]);	// Inserta un nuevo elemento al final de la lista
+void getElement(List l, Lpos p, char *element);				// Devuelve el contenido de la lista en 'element'
+void clearList(List l);										// Elimina todos los elementos de la lista
+void deleteList(List l);									// Elimina la lista pasada por referencia
 
 // Métodos del sistema
 void printPrompt();
@@ -86,7 +102,7 @@ struct cmd_help_data cmd_help[] = {
 
 /* == MAIN FUNCTION == */
 int main(int argc, char const *argv[]){
-	// Inicializar la lista
+	historicList = createList();
 
 	do{
 		printPrompt();
@@ -95,15 +111,65 @@ int main(int argc, char const *argv[]){
 		// Captador del salto de linea sin comando introducido
 		if(argLen==0) continue;
 
-		for(int i=0; i<argLen; ++i){
-			printf("[%s]", args[i]);
-		}
-		printf("\n");
-		
 	}while(executeCommand(argLen, args)!=0);
 
 	// Liberar la memoria de la lista
+	deleteList(historicList);
 	return 0;
+}
+
+// === IMPLEMENTACION DE LA LISTA DEL HISTORICO ===
+List createList(){											// Crea una lista vacía
+	struct node *l = (struct node *)malloc(sizeof(struct node));
+	l->next=NULL;
+	return l;
+}
+int isEmptyList(List l){									// Comprueba si la lista está vacía
+	return (l->next==NULL)? 1 : 0;
+}
+Lpos firstElement(List l){									// Retorna el primer elemento de la lista
+	return l->next;
+}
+Lpos nextElement(List l, Lpos p){							// Retorna el siguiente elemento si es válido
+	return (p->next==NULL)? NULL : p->next;
+}
+int insertElement(List l, char element[COMMAND_BUFFER]){	// Inserta un elemento en la lista
+	struct node *nwPos = (struct node *)malloc(sizeof(struct node));
+	struct node *auxPos;
+
+	if(nwPos==NULL) return 0;
+
+	strcpy(nwPos->comando, element);
+	nwPos->next=NULL;
+
+	if(l->next==NULL)
+		l->next=nwPos;
+	else{
+		for(auxPos=l->next; auxPos->next!=NULL; auxPos=auxPos->next);
+		auxPos->next=nwPos;
+	}
+
+	return 1;
+}
+void getElement(List l, Lpos p, char *element){				// Retorna el elemento de la posicion en element
+	if(p==NULL || l->next==NULL) return;
+	strcpy(element, p->comando);
+}
+void clearList(List l){										// Elimina todos los elementos de la lista
+	struct node *auxPos;
+
+	while(l->next!=NULL){
+		auxPos = l->next;
+		l->next = auxPos->next;
+		auxPos->next=NULL;
+
+		free(auxPos);
+	}
+}
+void deleteList(List l){									// Elimina la lista
+	clearList(l);
+	l->next=NULL;
+	free(l);
 }
 
 // == SYSTEM METHODS ==
@@ -120,9 +186,10 @@ int TrocearCadena(char *line, char *tokens[]){
 		i++;
 	return i;
 }
-
 void getCmdLine(){
 	// Comprobar que la lista está inicializada
+	if(isEmptyList(historicList)==1)
+		historicList = createList();
 
 	// Obteniendo el string de los comandos
 	if(fgets(get_input, COMMAND_BUFFER, stdin)==NULL){
@@ -136,6 +203,8 @@ void getCmdLine(){
 		strcpy(linea, token);
 
 		// Insertar en la lista
+		if(insertElement(historicList, linea)==0)
+			perror("No se pudo insertar el elemento en la lista");
 	}else{
 		strcpy(linea, "");
 		argLen = 0;
@@ -144,7 +213,6 @@ void getCmdLine(){
 	// Spliteo del comando introducido
 	argLen = TrocearCadena(linea, args);
 }
-
 int executeCommand(const int numTrozos, char *tokens[COMMAND_LEN]){
 	int i=0;
 
@@ -272,8 +340,51 @@ int cmdFecha(const int argLen, char *args[COMMAND_LEN]){
 	return 1;
 }
 
+static void printNcommands(int n){
+	char comm[COMMAND_BUFFER] = "";
+	Lpos auxPos;
+	int lenght_historic=0, iter=0, cifras=1;
+
+	for(auxPos=firstElement(historicList); auxPos!=NULL; ++lenght_historic, auxPos=nextElement(historicList, auxPos));
+	while(lenght_historic>=10){
+		lenght_historic/=10;
+		++cifras;
+	}
+
+	if(n>0){
+		for(auxPos=firstElement(historicList); auxPos!=NULL && iter<n; ++iter, auxPos=nextElement(historicList, auxPos)){
+			getElement(historicList, auxPos, comm);
+			printf("%*d %s\n", cifras, iter, comm);
+		}
+
+	}else{
+		for(auxPos=firstElement(historicList); auxPos!=NULL; ++iter, auxPos=nextElement(historicList, auxPos)){
+			getElement(historicList, auxPos, comm);
+			printf("%*d %s\n", cifras, iter, comm);
+		}
+	}
+
+	printf("\n");
+}
+
+// Done
 int cmdHist(const int argLen, char *args[COMMAND_LEN]){
-	// Code
+	if(argLen==1){
+		printNcommands(-1);
+		return 1;
+	}
+
+	if(strcmp(args[1], "-c")==0){
+		clearList(historicList);
+		return 1;
+	}
+
+	if(argLen>=3 && strcmp(args[1], "-N")==0){
+		printNcommands(atoi(args[2]));
+		return 1;
+	}
+
+	printf("[!] Error: faltan argumentos\n");
 	return 1;
 }
 
@@ -285,7 +396,7 @@ int cmdComando(const int argLen, char *args[COMMAND_LEN]){
 // Done
 int cmdInfosys(const int argLen, char *args[COMMAND_LEN]){
 	struct utsname systemData;
-	
+
 	if(uname(&systemData)==-1){
 		printf("[!] Error: No se pudo obtener informacion del sistema\n\n");
 		return 1;
