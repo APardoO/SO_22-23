@@ -6,6 +6,12 @@
 		-> 
 
 	Grupo: 2.1
+
+	-> Faltan los datos del comadno 'autores'
+	-> Falta el comando 'comando N'
+
+	-> Comprobar qué más falta
+
 	========================================= */
 #include <time.h>					// Librería de tiempo del sistema
 #include <stdio.h>					// Librería estándar de entrada/salida
@@ -15,6 +21,7 @@
 #include <errno.h>					// Librería de captador de errores
 #include <sys/utsname.h>			// Obtiene informacñon del sistema [LINUX]
 
+// Definiciones globales de la shell
 #define COMMAND_LEN		512
 #define COMMAND_BUFFER	4096
 
@@ -119,21 +126,30 @@ int main(int argc, char const *argv[]){
 }
 
 // === IMPLEMENTACION DE LA LISTA DEL HISTORICO ===
-List createList(){											// Crea una lista vacía
+// Crea una lista vacía
+List createList(){
 	struct node *l = (struct node *)malloc(sizeof(struct node));
 	l->next=NULL;
 	return l;
 }
-int isEmptyList(List l){									// Comprueba si la lista está vacía
+
+// Comprueba si la lista está vacía
+int isEmptyList(List l){
 	return (l->next==NULL)? 1 : 0;
 }
-Lpos firstElement(List l){									// Retorna el primer elemento de la lista
+
+// Retorna el primer elemento de la lista
+Lpos firstElement(List l){
 	return l->next;
 }
-Lpos nextElement(List l, Lpos p){							// Retorna el siguiente elemento si es válido
+
+// Retorna el siguiente elemento si es válido
+Lpos nextElement(List l, Lpos p){
 	return (p->next==NULL)? NULL : p->next;
 }
-int insertElement(List l, char element[COMMAND_BUFFER]){	// Inserta un elemento en la lista
+
+// Inserta un elemento en la lista
+int insertElement(List l, char element[COMMAND_BUFFER]){
 	struct node *nwPos = (struct node *)malloc(sizeof(struct node));
 	struct node *auxPos;
 
@@ -151,11 +167,15 @@ int insertElement(List l, char element[COMMAND_BUFFER]){	// Inserta un elemento 
 
 	return 1;
 }
-void getElement(List l, Lpos p, char *element){				// Retorna el elemento de la posicion en element
+
+// Retorna el elemento de la posicion en element
+void getElement(List l, Lpos p, char *element){
 	if(p==NULL || l->next==NULL) return;
 	strcpy(element, p->comando);
 }
-void clearList(List l){										// Elimina todos los elementos de la lista
+
+// Elimina todos los elementos de la lista
+void clearList(List l){
 	struct node *auxPos;
 
 	while(l->next!=NULL){
@@ -166,7 +186,9 @@ void clearList(List l){										// Elimina todos los elementos de la lista
 		free(auxPos);
 	}
 }
-void deleteList(List l){									// Elimina la lista
+
+// Elimina la lista
+void deleteList(List l){
 	clearList(l);
 	l->next=NULL;
 	free(l);
