@@ -34,11 +34,11 @@ struct node {
 };
 
 // Definiciones globales
-int argLen;						// Número de parametros del comadno introducido
-char *args[COMMAND_LEN];		// Parámetros del comando introducido
-char linea[COMMAND_BUFFER];		// String con el comando introducido
-char get_input[COMMAND_BUFFER];	// Obtiene la líne introducida por el usuario, se crea para splitearla por \n y que no se sobreescriba en la misma direccion de memoria
-List historicList;
+int argLen;							// Número de parametros del comadno introducido
+char *args[COMMAND_LEN];			// Parámetros del comando introducido
+char linea[COMMAND_BUFFER];			// String con el comando introducido
+char get_input[COMMAND_BUFFER];		// Obtiene la líne introducida por el usuario, se crea para splitearla por \n y que no se sobreescriba en la misma direccion de memoria
+List historicList;					// Lista del histórico de comandos
 
 // Métodos de la implementacion de la lista
 List createList();											// Devuelve una lista vacía
@@ -57,15 +57,15 @@ void getCmdLine();
 int executeCommand(const int numTrozos, char *tokens[COMMAND_LEN]);
 
 // Programas shell-in Build
-int cmdAutores(const int argLen, char *args[COMMAND_LEN]);
-int cmdPid(const int argLen, char *args[COMMAND_LEN]);
-int cmdCarpeta(const int argLen, char *args[COMMAND_LEN]);
-int cmdFecha(const int argLen, char *args[COMMAND_LEN]);
-int cmdHist(const int argLen, char *args[COMMAND_LEN]);
-int cmdComando(const int argLen, char *args[COMMAND_LEN]);
-int cmdInfosys(const int argLen, char *args[COMMAND_LEN]);
-int cmdHelp(const int argLen, char *args[COMMAND_LEN]);
-int cmdExit(const int argLen, char *args[COMMAND_LEN]);
+int cmdAutores(const int lenArg, char *args[COMMAND_LEN]);
+int cmdPid(const int lenArg, char *args[COMMAND_LEN]);
+int cmdCarpeta(const int lenArg, char *args[COMMAND_LEN]);
+int cmdFecha(const int lenArg, char *args[COMMAND_LEN]);
+int cmdHist(const int lenArg, char *args[COMMAND_LEN]);
+int cmdComando(const int lenArg, char *args[COMMAND_LEN]);
+int cmdInfosys(const int lenArg, char *args[COMMAND_LEN]);
+int cmdHelp(const int lenArg, char *args[COMMAND_LEN]);
+int cmdExit(const int lenArg, char *args[COMMAND_LEN]);
 
 // Tablas necesarias para la práctica
 struct cmd_data{
@@ -109,6 +109,7 @@ struct cmd_help_data cmd_help[] = {
 
 /* == MAIN FUNCTION == */
 int main(int argc, char const *argv[]){
+	// Crear la lista del histórico
 	historicList = createList();
 
 	do{
@@ -195,11 +196,12 @@ void deleteList(List l){
 }
 
 // == SYSTEM METHODS ==
+// Imprime por pantalla el propmt del usuario
 void printPrompt(){
 	printf("[#]~$ ");
 }
 
-// Splitea el comando por delimitadores
+// Sepra la línea en partes usando como delimitador los espacios(' '), saltos de línea('\n') y tabuladores('\t')
 int TrocearCadena(char *line, char *tokens[]){
 	int i = 1;
 	if ((tokens[0]=strtok(line," \n\t"))==NULL)
@@ -208,6 +210,8 @@ int TrocearCadena(char *line, char *tokens[]){
 		i++;
 	return i;
 }
+
+// Línea donde el usuario introduce el comando, se guarda en el histórico y se comprueba si es válido
 void getCmdLine(){
 	// Comprobar que la lista está inicializada
 	if(isEmptyList(historicList)==1)
@@ -227,14 +231,17 @@ void getCmdLine(){
 		// Insertar en la lista
 		if(insertElement(historicList, linea)==0)
 			perror("No se pudo insertar el elemento en la lista");
+
+	// En caso de no ser válido, la línea se vacía y el número de argumentos se pone a 0
 	}else{
 		strcpy(linea, "");
 		argLen = 0;
 	}
 
-	// Spliteo del comando introducido
+	// Separar en trozos la cadena de texto introducida
 	argLen = TrocearCadena(linea, args);
 }
+
 int executeCommand(const int numTrozos, char *tokens[COMMAND_LEN]){
 	int i=0;
 
@@ -262,8 +269,8 @@ int executeCommand(const int numTrozos, char *tokens[COMMAND_LEN]){
 
 // == PROGRAMAS SHELL-IN BUILD ==
 // Done
-int cmdAutores(const int argLen, char *args[COMMAND_LEN]){
-	if(argLen==1){
+int cmdAutores(const int lenArg, char *args[COMMAND_LEN]){
+	if(lenArg==1){
 		printf("Nombres:%s\nLogins:%s\n\n", "\n\tAdrian Pardo Martinez\n\t[NAME]", "\n\tadrian.pardo.martinez\n\t[LOGIN]");
 		return 1;
 	}
@@ -283,8 +290,8 @@ int cmdAutores(const int argLen, char *args[COMMAND_LEN]){
 }
 
 // Done
-int cmdPid(const int argLen, char *args[COMMAND_LEN]){
-	if(argLen==1){
+int cmdPid(const int lenArg, char *args[COMMAND_LEN]){
+	if(lenArg==1){
 		printf("%d\n\n", getppid());
 		return 1;
 	}
@@ -299,9 +306,8 @@ int cmdPid(const int argLen, char *args[COMMAND_LEN]){
 }
 
 // Done
-int cmdCarpeta(const int argLen, char *args[COMMAND_LEN]){
-	printf("argLen = %d\n", argLen);
-	if(argLen==1){
+int cmdCarpeta(const int lenArg, char *args[COMMAND_LEN]){
+	if(lenArg==1){
 		char path[COMMAND_BUFFER];
 		if(getcwd(path, COMMAND_BUFFER)==NULL)
 			printf("Error: No se pudo encontrar el directorio actual\n\n");
@@ -317,7 +323,7 @@ int cmdCarpeta(const int argLen, char *args[COMMAND_LEN]){
 }
 
 // Done
-int cmdFecha(const int argLen, char *args[COMMAND_LEN]){
+int cmdFecha(const int lenArg, char *args[COMMAND_LEN]){
 	time_t crrent_time = time(NULL);
 	struct tm tiempoLocal = *localtime(&crrent_time);
 	char datosFecha[70]="";
@@ -329,7 +335,7 @@ int cmdFecha(const int argLen, char *args[COMMAND_LEN]){
 	bytesFecha = strftime(datosFecha, sizeof datosFecha, formato_fecha, &tiempoLocal);
 	bytesHora = strftime(datosHora, sizeof datosHora, formato_hora, &tiempoLocal);
 
-	if(argLen==1){
+	if(lenArg==1){
 		if(bytesFecha==0 || bytesHora==0){
 			printf("[!] Error de formato fecha\n");
 			return 1;
@@ -390,8 +396,8 @@ static void printNcommands(int n){
 }
 
 // Done
-int cmdHist(const int argLen, char *args[COMMAND_LEN]){
-	if(argLen==1){
+int cmdHist(const int lenArg, char *args[COMMAND_LEN]){
+	if(lenArg==1){
 		printNcommands(-1);
 		return 1;
 	}
@@ -401,7 +407,7 @@ int cmdHist(const int argLen, char *args[COMMAND_LEN]){
 		return 1;
 	}
 
-	if(argLen>=3 && strcmp(args[1], "-N")==0){
+	if(lenArg>=3 && strcmp(args[1], "-N")==0){
 		printNcommands(atoi(args[2]));
 		return 1;
 	}
@@ -410,13 +416,43 @@ int cmdHist(const int argLen, char *args[COMMAND_LEN]){
 	return 1;
 }
 
-int cmdComando(const int argLen, char *args[COMMAND_LEN]){
-	// Code
+int cmdComando(const int lenArg, char *args[COMMAND_LEN]){
+	char *badUsage = "[!] Error: Uso incorrecto\n";
+	
+	if(lenArg>1){
+		int iter=0, nCommand = atoi(args[1]);
+		
+		if(nCommand<=0){
+			printf("%s\n", badUsage);
+			return 1;
+		}
+
+		Lpos auxPos;
+		char comando[COMMAND_BUFFER] = "";
+		for(auxPos=firstElement(historicList); iter<nCommand && auxPos!=NULL; ++iter, auxPos=nextElement(historicList, auxPos));
+
+		// Comprobar la salida del bucle
+		if(auxPos==NULL){
+			printf("%s\n", badUsage);
+			return 1;
+		}
+
+		getElement(historicList, auxPos, comando);
+		strcpy(linea, comando);
+
+		printf(":: %s\n\n", linea);
+		
+		// Separar en trozos la cadena de texto introducida
+		argLen = TrocearCadena(linea, args);
+		return executeCommand(argLen, args);
+	}
+
+	printf("%s\n", badUsage);
 	return 1;
 }
 
 // Done
-int cmdInfosys(const int argLen, char *args[COMMAND_LEN]){
+int cmdInfosys(const int lenArg, char *args[COMMAND_LEN]){
 	struct utsname systemData;
 
 	if(uname(&systemData)==-1){
@@ -429,9 +465,9 @@ int cmdInfosys(const int argLen, char *args[COMMAND_LEN]){
 }
 
 // Done
-int cmdHelp(const int argLen, char *args[COMMAND_LEN]){
+int cmdHelp(const int lenArg, char *args[COMMAND_LEN]){
 	int i=0;
-	if(argLen==2){
+	if(lenArg==2){
 		while(cmd_help[i].cmd_name != NULL && strcmp(cmd_help[i].cmd_name, args[1])!=0)
 			++i;
 
@@ -445,11 +481,12 @@ int cmdHelp(const int argLen, char *args[COMMAND_LEN]){
 			printf("%s%s\n", cmd_help[i].cmd_name, cmd_help[i].cmd_usage);
 			++i;
 		}
+		printf("\n");
 	}
 	return 1;
 }
 
 // Done
-int cmdExit(const int argLen, char *args[COMMAND_LEN]){
+int cmdExit(const int lenArg, char *args[COMMAND_LEN]){
 	return 0;
 }
