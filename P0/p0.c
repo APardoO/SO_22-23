@@ -8,9 +8,8 @@
 	Grupo: 2.1
 
 	-> Faltan los datos del comadno 'autores'
-	-> Falta el comando 'comando N'
-
-	-> Comprobar qué más falta
+	-> Falta comprobar la implementacion de la lista
+	-> Falta hacer el Makefile
 
 	========================================= */
 #include <time.h>					// Librería de tiempo del sistema
@@ -22,8 +21,8 @@
 #include <sys/utsname.h>			// Obtiene informacñon del sistema [LINUX]
 
 // Definiciones globales de la shell
-#define COMMAND_LEN		512
-#define COMMAND_BUFFER	4096
+#define COMMAND_LEN		512			// Longitud de cada parametro
+#define COMMAND_BUFFER	4096		// Longitud máxima del comando introducido
 
 // Definicion de tipos de la lista
 typedef struct node *Lpos;
@@ -79,7 +78,7 @@ struct cmd_data cmd_table[] = {
 	{"fecha", cmdFecha},
 	{"hist", cmdHist},
 	{"comando", cmdComando},
-	{"infosys", cmdInfosys},
+	{"infosis", cmdInfosys},
 	{"ayuda", cmdHelp},
 	{"fin", cmdExit},
 	{"salir", cmdExit},
@@ -99,7 +98,7 @@ struct cmd_help_data cmd_help[] = {
 	{"fecha", "\t\t:: Muestra tanto la fecha como la hora\n\t\t[-d] Muestra la fecha en formato DD/MM/YYYY\n\t\t[-h] Muestra la hora en formato hh:mm:ss\n"},
 	{"hist", "\t\t:: Muestra toda la lista del historico\n\t\t[-c] Limpia la lista del historico\n\t\t[-N] Muestra los primeros N elementos\n"},
 	{"comando", "\t\t[N] :: Repite el comando N del historico\n"},
-	{"infosys", "\t\t:: Muestra por pantalla información de la máquina que ejecuta la shell\n"},
+	{"infosis", "\t\t:: Muestra por pantalla información de la máquina que ejecuta la shell\n"},
 	{"ayuda", "\t\t:: Muestra por pantalla la ayuda de todos los comandos\n\t\t[cmd]	Muestra por pantalla la ayuda asociada al comando especificado\n"},
 	{"fin", "\t\t:: Sale de la shell"},
 	{"salir", "\t\t:: Sale de la shell"},
@@ -116,9 +115,7 @@ int main(int argc, char const *argv[]){
 		printPrompt();
 		getCmdLine();
 
-		// Captador del salto de linea sin comando introducido
-		if(argLen==0) continue;
-
+		if(argLen==0) continue;				// Captador del salto de linea sin comando introducido
 	}while(executeCommand(argLen, args)!=0);
 
 	// Liberar la memoria de la lista
@@ -222,7 +219,7 @@ void getCmdLine(){
 		printf("\n[!] End...\n");
 		exit(0);
 	}
-	char *token = strtok(get_input, "\n");
+	char *token=strtok(get_input, "\n");
 
 	// Comprobación del comando introducido
 	if(token!=NULL){
@@ -230,7 +227,7 @@ void getCmdLine(){
 
 		// Insertar en la lista
 		if(insertElement(historicList, linea)==0)
-			perror("No se pudo insertar el elemento en la lista");
+			printf("[!] Error: %s\n", strerror(12));
 
 	// En caso de no ser válido, la línea se vacía y el número de argumentos se pone a 0
 	}else{
@@ -254,148 +251,119 @@ int executeCommand(const int numTrozos, char *tokens[COMMAND_LEN]){
 
 		// En caso de que no se haya implementado la funcion de dicho programa
 		if(cmd_table[i].cmd_func == NULL)
-			printf("[!] Error: %s function not found\n\n", tokens[0]);
+			printf("[!] Error: %s\n", strerror(38));
 		
 		else
 			return cmd_table[i].cmd_func(numTrozos, tokens);
 
 	// En caso de que no se encuentre el comando en la lista
-	else{
-		printf("[!] Error: %s command not found\n\n", tokens[0]);
-	}
+	else
+		printf("[!] Error: %s\n", strerror(38));
 
 	return 1;
 }
 
 // == PROGRAMAS SHELL-IN BUILD ==
-// Done
 int cmdAutores(const int lenArg, char *args[COMMAND_LEN]){
 	if(lenArg==1){
-		printf("Nombres:%s\nLogins:%s\n\n", "\n\tAdrian Pardo Martinez\n\t[NAME]", "\n\tadrian.pardo.martinez\n\t[LOGIN]");
+		printf("Adrian Pardo Martinez: adrian.pardo.martinez\n");
+		printf("[NAME]: [LOGIN]\n");
 		return 1;
 	}
 
-	if(strcmp("-l", args[1])==0){
-		printf("Logins:%s\n\n", "\n\tadrian.pardo.martinez\n\t[LOGIN]");
-		return 1;
-	}
+	if(strcmp("-l", args[1])==0)
+		printf("adrian.pardo.martinez\n[LOGIN]\n");
+	
+	else if(strcmp("-n", args[1])==0)
+		printf("Adrian Pardo Martinez\n[NAME]\n");
+	
+	else
+		printf("[!] Error: %s\n", strerror(22));
 
-	if(strcmp("-n", args[1])==0){
-		printf("Nombres:%s\n\n", "\n\tAdrian Pardo Martinez\n\t[NAME]");
-		return 1;
-	}
-
-	printf("[!] Error: parametros incorrectos\n");
 	return 1;
 }
 
-// Done
 int cmdPid(const int lenArg, char *args[COMMAND_LEN]){
 	if(lenArg==1){
-		printf("%d\n\n", getppid());
+		printf("Pid de shell: %d\n", getppid());
 		return 1;
 	}
 
-	if(strcmp(args[1], "-p")==0){
-		printf("%d\n\n", getpid());
-		return 1;
-	}
-
-	printf("[!] Error: parametros incorrectos\n");
+	if(strcmp(args[1], "-p")==0)
+		printf("Pid del padre del shell: %d\n", getpid());
+	else
+		printf("[!] Error: %s\n", strerror(22));
+	
 	return 1;
 }
 
-// Done
 int cmdCarpeta(const int lenArg, char *args[COMMAND_LEN]){
 	if(lenArg==1){
 		char path[COMMAND_BUFFER];
 		if(getcwd(path, COMMAND_BUFFER)==NULL)
-			printf("Error: No se pudo encontrar el directorio actual\n\n");
+			printf("[!] Error: %s\n", strerror(20));
 		else
-			printf("%s\n\n", path);
+			printf("%s\n", path);
 		return 1;
 	}
 
 	if(chdir(args[1])!=0)
-		printf("Error: Path not found\n\n");
-
+		printf("[!] Error: %s\n", strerror(2));
 	return 1;
 }
 
-// Done
+// ====== CODIGO OFUSCADO ======
 int cmdFecha(const int lenArg, char *args[COMMAND_LEN]){
 	time_t crrent_time = time(NULL);
 	struct tm tiempoLocal = *localtime(&crrent_time);
 	char datosFecha[70]="";
 	char datosHora[70]="";
-	char *formato_fecha="%d-%m-%Y";
-	char *formato_hora="%H:%M:%S";
 
 	int bytesFecha=0, bytesHora=0;
-	bytesFecha = strftime(datosFecha, sizeof datosFecha, formato_fecha, &tiempoLocal);
-	bytesHora = strftime(datosHora, sizeof datosHora, formato_hora, &tiempoLocal);
+	bytesFecha = strftime(datosFecha, sizeof datosFecha, "%d/%m/%Y", &tiempoLocal);
+	bytesHora = strftime(datosHora, sizeof datosHora, "%H:%M:%S", &tiempoLocal);
+
+	if(bytesFecha==0 || bytesHora==0){
+		printf("[!] Error: %s\n", strerror(8));
+		return 1;
+	}
 
 	if(lenArg==1){
-		if(bytesFecha==0 || bytesHora==0){
-			printf("[!] Error de formato fecha\n");
-			return 1;
-		}
-
-		printf("%s %s\n\n", datosFecha, datosHora);
+		printf("%s\n%s\n", datosHora, datosFecha);
 		return 1;
 	}
 
-	if(strcmp("-d", args[1])==0){
-		if(bytesFecha==0){
-			printf("[!] Error de formato fecha\n");
-			return 1;
-		}
+	if(strcmp("-d", args[1])==0)
+		printf("%s\n", datosFecha);
 
-		printf("%s\n\n", datosFecha);
-		return 1;
-	}
+	else if(strcmp("-h", args[1])==0)
+		printf("%s\n", datosHora);
 
-	if(strcmp("-h", args[1])==0){
-		if(bytesHora==0){
-			printf("[!] Error de formato fecha\n");
-			return 1;
-		}
-
-		printf("%s\n\n", datosHora);
-		return 1;
-	}
-
+	else
+		printf("[!] Error: %s\n", strerror(22));
 	return 1;
 }
 
 static void printNcommands(int n){
 	char comm[COMMAND_BUFFER] = "";
 	Lpos auxPos;
-	int lenght_historic=0, iter=0, cifras=1;
+	int iter=0;
 
-	for(auxPos=firstElement(historicList); auxPos!=NULL; ++lenght_historic, auxPos=nextElement(historicList, auxPos));
-	while(lenght_historic>=10){
-		lenght_historic/=10;
-		++cifras;
-	}
-
+	// Buscar una forma de aliviar código
 	if(n>0){
 		for(auxPos=firstElement(historicList); auxPos!=NULL && iter<n; ++iter, auxPos=nextElement(historicList, auxPos)){
 			getElement(historicList, auxPos, comm);
-			printf("%*d %s\n", cifras, iter, comm);
+			printf("%d->%s\n", iter, comm);
 		}
 
 	}else{
 		for(auxPos=firstElement(historicList); auxPos!=NULL; ++iter, auxPos=nextElement(historicList, auxPos)){
 			getElement(historicList, auxPos, comm);
-			printf("%*d %s\n", cifras, iter, comm);
+			printf("%d->%s\n", iter, comm);
 		}
 	}
-
-	printf("\n");
 }
 
-// Done
 int cmdHist(const int lenArg, char *args[COMMAND_LEN]){
 	if(lenArg==1){
 		printNcommands(-1);
@@ -407,23 +375,28 @@ int cmdHist(const int lenArg, char *args[COMMAND_LEN]){
 		return 1;
 	}
 
-	if(lenArg>=3 && strcmp(args[1], "-N")==0){
-		printNcommands(atoi(args[2]));
+	char *num;
+	int n=0;
+	if ((num=strtok(args[1],"-"))==NULL){
+		printf("[!] Error: %s\n", strerror(22));
 		return 1;
 	}
 
-	printf("[!] Error: faltan argumentos\n");
+	if((n=atoi(num))!=0)
+		printNcommands(n);
+	else
+		printf("[!] Error: %s\n", strerror(22));
+	
 	return 1;
 }
 
+// ====== CODIGO OFUSCADO ======
 int cmdComando(const int lenArg, char *args[COMMAND_LEN]){
-	char *badUsage = "[!] Error: Uso incorrecto\n";
-	
 	if(lenArg>1){
 		int iter=0, nCommand = atoi(args[1]);
 		
 		if(nCommand<=0){
-			printf("%s\n", badUsage);
+			perror("[!] Error");									// [!] == ERROR == [!]
 			return 1;
 		}
 
@@ -433,60 +406,56 @@ int cmdComando(const int lenArg, char *args[COMMAND_LEN]){
 
 		// Comprobar la salida del bucle
 		if(auxPos==NULL){
-			printf("%s\n", badUsage);
+			perror("[!] Error");									// [!] == ERROR == [!]
 			return 1;
 		}
 
 		getElement(historicList, auxPos, comando);
 		strcpy(linea, comando);
 
-		printf(":: %s\n\n", linea);
-		
+		printf("Ejecutando hist (%d): %s\n", nCommand, linea);		// [!] == ERROR == [!]
+
 		// Separar en trozos la cadena de texto introducida
 		argLen = TrocearCadena(linea, args);
 		return executeCommand(argLen, args);
 	}
 
-	printf("%s\n", badUsage);
+	perror("[!] Error");											// [!] == ERROR == [!]
 	return 1;
 }
 
-// Done
 int cmdInfosys(const int lenArg, char *args[COMMAND_LEN]){
 	struct utsname systemData;
+	if(uname(&systemData)==-1)
+		printf("[!] Error: %s\n", strerror(61));
+	else
+		printf("%s (%s), OS: %s-%s-%s\n", systemData.nodename, systemData.machine, systemData.sysname, systemData.release, systemData.version);
 
-	if(uname(&systemData)==-1){
-		printf("[!] Error: No se pudo obtener informacion del sistema\n\n");
-		return 1;
-	}
-
-	printf("System name:\t%s\nNode name:\t%s\nRelease:\t%s\nVersion:\t%s\nMachine:\t%s\n\n", systemData.sysname, systemData.nodename, systemData.release, systemData.version, systemData.machine);
 	return 1;
 }
 
-// Done
 int cmdHelp(const int lenArg, char *args[COMMAND_LEN]){
 	int i=0;
+
 	if(lenArg==2){
 		while(cmd_help[i].cmd_name != NULL && strcmp(cmd_help[i].cmd_name, args[1])!=0)
 			++i;
 
 		if(cmd_help[i].cmd_name == NULL)
-			perror("[!] Comando no encontrado");
-		else{
-			printf("%s\n", cmd_help[i].cmd_usage);
-		}
+			printf("[!] Error: %s\n", strerror(38));
+		else
+			printf("%s%s", cmd_help[i].cmd_name, cmd_help[i].cmd_usage);
 	}else{
-		while(cmd_help[i].cmd_name!=NULL){
-			printf("%s%s\n", cmd_help[i].cmd_name, cmd_help[i].cmd_usage);
-			++i;
-		}
+		printf("'ayuda cmd' donde cmd es uno de los siguientes comandos:\n");
+		for(i=0; cmd_help[i].cmd_name!=NULL; ++i)
+			printf("%s ", cmd_help[i].cmd_name);
+
 		printf("\n");
 	}
+
 	return 1;
 }
 
-// Done
 int cmdExit(const int lenArg, char *args[COMMAND_LEN]){
 	return 0;
 }
