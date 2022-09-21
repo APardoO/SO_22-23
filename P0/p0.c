@@ -295,15 +295,15 @@ int executeCommand(const int numTrozos, char *tokens[COMMAND_LEN]){
 int cmdAutores(const int lenArg, char *args[COMMAND_LEN]){
 	if(lenArg==1){
 		printf("Adrian Pardo Martinez: adrian.pardo.martinez\n");
-		printf("[NAME]: [LOGIN]\n");
+		printf("Hugo Correa Blanco: hugo.correa.blanco\n");
 		return 1;
 	}
 
 	if(strcmp("-l", args[1])==0)
-		printf("adrian.pardo.martinez\n[LOGIN]\n");
+		printf("adrian.pardo.martinez\nhugo.correa.blanco\n");
 	
 	else if(strcmp("-n", args[1])==0)
-		printf("Adrian Pardo Martinez\n[NAME]\n");
+		printf("Adrian Pardo Martinez\nHugo Correa Blanco\n");
 	
 	else
 		printf("[!] Error: %s\n", strerror(22));
