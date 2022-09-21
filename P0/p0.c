@@ -3,7 +3,7 @@
 
 	Authors:
 		-> Adrián Pardo Martinez
-		-> 
+		-> Hugo Correa Blanco
 
 	Grupo: 2.1
 
@@ -33,10 +33,10 @@ struct node {
 };
 
 // Definiciones globales
-int argLen;							// Número de parametros del comadno introducido
+int argLen=0;						// Número de parametros del comadno introducido
 char *args[COMMAND_LEN];			// Parámetros del comando introducido
-char linea[COMMAND_BUFFER];			// String con el comando introducido
-char get_input[COMMAND_BUFFER];		// Obtiene la líne introducida por el usuario, se crea para splitearla por \n y que no se sobreescriba en la misma direccion de memoria
+char linea[COMMAND_BUFFER]=" ";		// String con el comando introducido
+char get_input[COMMAND_BUFFER]=" ";	// Obtiene la líne introducida por el usuario, se crea para splitearla por \n y que no se sobreescriba en la misma direccion de memoria
 List historicList;					// Lista del histórico de comandos
 
 // Métodos de la implementacion de la lista
@@ -92,17 +92,17 @@ struct cmd_help_data{
 	char *cmd_usage;
 };
 struct cmd_help_data cmd_help[] = {
-	{"autores", "\t\t:: Devuelve el nombre y los logins de los autores\n\t\t[-l] Devuelve solo los logins de los autores\n\t\t[-n] Devuelve solo los nombres de los autores\n"},
-	{"pid", "\t\t:: Muestra el PID del proceso que ejecuta la shell\n\t\t[-p] Muestra el PID del proceso de la shell\n"},
-	{"carpeta", "\t\t:: Muestra el directorio actual\n\t\t[direct] Cambia el directorio de trabajo al especificado\n"},
-	{"fecha", "\t\t:: Muestra tanto la fecha como la hora\n\t\t[-d] Muestra la fecha en formato DD/MM/YYYY\n\t\t[-h] Muestra la hora en formato hh:mm:ss\n"},
-	{"hist", "\t\t:: Muestra toda la lista del historico\n\t\t[-c] Limpia la lista del historico\n\t\t[-N] Muestra los primeros N elementos\n"},
-	{"comando", "\t\t[N] :: Repite el comando N del historico\n"},
-	{"infosis", "\t\t:: Muestra por pantalla información de la máquina que ejecuta la shell\n"},
-	{"ayuda", "\t\t:: Muestra por pantalla la ayuda de todos los comandos\n\t\t[cmd]	Muestra por pantalla la ayuda asociada al comando especificado\n"},
-	{"fin", "\t\t:: Sale de la shell"},
-	{"salir", "\t\t:: Sale de la shell"},
-	{"bye", "\t\t:: Sale de la shell"},
+	{"autores", "[-n|-l]\tMuestra los nombres y logins de los autores\n"},
+	{"pid", "[-p]\tMuestra el pid del shell o de su proceso padre\n"},
+	{"carpeta", "[dir]\tCambia (o muestra) el directorio actual del shell\n"},
+	{"fecha", "[-d|-h]\tMuestra la fecha y o la hora actual\n"},
+	{"hist", "[-c|-N]\tMuestra el historico de comandos, con -c lo borra\n"},
+	{"comando", "[-N]\tRepite el comando N (del historico)\n"},
+	{"infosis", "\tMuestra informacion de la maquina donde corre el shell\n"},
+	{"ayuda", "[cmd]\tMuestra ayuda sobre los comandos\n"},
+	{"fin", "\tTermina la ejecucion del shell\n"},
+	{"salir", "\tTermina la ejecucion del shell\n"},
+	{"bye", "\tTermina la ejecucion del shell\n"},
 	{NULL, NULL}
 };
 
@@ -114,13 +114,34 @@ int main(int argc, char const *argv[]){
 	do{
 		printPrompt();
 		getCmdLine();
-
-		if(argLen==0) continue;				// Captador del salto de linea sin comando introducido
 	}while(executeCommand(argLen, args)!=0);
 
 	// Liberar la memoria de la lista
 	deleteList(historicList);
 	return 0;
+}
+
+// === DECLARACIONES PROPIAS DENTRO DE STRING.H ===
+/*char *strdup(const char *s) {
+    size_t size = strlen(s) + 1;
+    char *p = malloc(size);
+    if (p != NULL) {
+        memcpy(p, s, size);
+    }
+    return p;
+}*/
+char *strndup(const char *s, size_t n) {
+    char *p;
+    size_t n1;
+
+    for (n1 = 0; n1 < n && s[n1] != '\0'; n1++)
+        continue;
+    p = malloc(n + 1);
+    if (p != NULL) {
+        memcpy(p, s, n1);
+        p[n1] = '\0';
+    }
+    return p;
 }
 
 // === IMPLEMENTACION DE LA LISTA DEL HISTORICO ===
@@ -153,7 +174,10 @@ int insertElement(List l, char element[COMMAND_BUFFER]){
 
 	if(nwPos==NULL) return 0;
 
-	strcpy(nwPos->comando, element);
+	// Compia de un duplicado del elemento a introducir
+	strcpy(nwPos->comando, strndup(element, COMMAND_BUFFER));
+
+	//strcpy(nwPos->comando, element);
 	nwPos->next=NULL;
 
 	if(l->next==NULL)
@@ -180,7 +204,6 @@ void clearList(List l){
 		auxPos = l->next;
 		l->next = auxPos->next;
 		auxPos->next=NULL;
-
 		free(auxPos);
 	}
 }
@@ -216,31 +239,36 @@ void getCmdLine(){
 
 	// Obteniendo el string de los comandos
 	if(fgets(get_input, COMMAND_BUFFER, stdin)==NULL){
-		printf("\n[!] End...\n");
+		printf("\n[!] Fin...\n");
 		exit(0);
 	}
-	char *token=strtok(get_input, "\n");
 
 	// Comprobación del comando introducido
-	if(token!=NULL){
+	if(strcmp(get_input, "\n")!=0 && get_input!=NULL){
+		char *token=strtok(get_input, "\n");
 		strcpy(linea, token);
 
 		// Insertar en la lista
 		if(insertElement(historicList, linea)==0)
 			printf("[!] Error: %s\n", strerror(12));
 
+		// Separar en trozos la cadena de texto introducida
+		argLen = TrocearCadena(linea, args);
+
 	// En caso de no ser válido, la línea se vacía y el número de argumentos se pone a 0
 	}else{
-		strcpy(linea, "");
+		strcpy(get_input, " ");
+		strcpy(linea, " ");
 		argLen = 0;
 	}
-
-	// Separar en trozos la cadena de texto introducida
-	argLen = TrocearCadena(linea, args);
 }
 
+// Método que ejecuta el comando introducido por el usuario
 int executeCommand(const int numTrozos, char *tokens[COMMAND_LEN]){
 	int i=0;
+
+	// Captador del salto de linea sin comando introducido
+	if(argLen==0) return 1;
 
 	// Obtenemos la posicion en la tabla de comandos la posicion del comando a ejecutar
 	while (cmd_table[i].cmd_name != NULL && strcmp(cmd_table[i].cmd_name, tokens[0])!=0)
@@ -396,7 +424,7 @@ int cmdComando(const int lenArg, char *args[COMMAND_LEN]){
 		int iter=0, nCommand = atoi(args[1]);
 		
 		if(nCommand<=0){
-			perror("[!] Error");									// [!] == ERROR == [!]
+			printf("[!] Error: %s\n", strerror(22));
 			return 1;
 		}
 
@@ -406,21 +434,21 @@ int cmdComando(const int lenArg, char *args[COMMAND_LEN]){
 
 		// Comprobar la salida del bucle
 		if(auxPos==NULL){
-			perror("[!] Error");									// [!] == ERROR == [!]
+			printf("[!] Error: %s\n", strerror(95));
 			return 1;
 		}
 
 		getElement(historicList, auxPos, comando);
 		strcpy(linea, comando);
 
-		printf("Ejecutando hist (%d): %s\n", nCommand, linea);		// [!] == ERROR == [!]
+		printf("Ejecutando hist (%d): %s\n", nCommand, linea);
 
 		// Separar en trozos la cadena de texto introducida
 		argLen = TrocearCadena(linea, args);
 		return executeCommand(argLen, args);
 	}
 
-	perror("[!] Error");											// [!] == ERROR == [!]
+	printNcommands(-1);
 	return 1;
 }
 
@@ -444,7 +472,7 @@ int cmdHelp(const int lenArg, char *args[COMMAND_LEN]){
 		if(cmd_help[i].cmd_name == NULL)
 			printf("[!] Error: %s\n", strerror(38));
 		else
-			printf("%s%s", cmd_help[i].cmd_name, cmd_help[i].cmd_usage);
+			printf("%s %s", cmd_help[i].cmd_name, cmd_help[i].cmd_usage);
 	}else{
 		printf("'ayuda cmd' donde cmd es uno de los siguientes comandos:\n");
 		for(i=0; cmd_help[i].cmd_name!=NULL; ++i)
