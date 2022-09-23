@@ -5,12 +5,11 @@
 		-> Adrián Pardo Martinez
 		-> Hugo Correa Blanco
 
+	Logins:
+		-> adrian.pardo.martinez
+		-> hugo.correa.blanco
+
 	Grupo: 2.1
-
-	-> Faltan los datos del comadno 'autores'
-	-> Falta comprobar la implementacion de la lista
-	-> Falta hacer el Makefile
-
 	========================================= */
 #include <time.h>					// Librería de tiempo del sistema
 #include <stdio.h>					// Librería estándar de entrada/salida
@@ -122,14 +121,6 @@ int main(int argc, char const *argv[]){
 }
 
 // === DECLARACIONES PROPIAS DENTRO DE STRING.H ===
-/*char *strdup(const char *s) {
-    size_t size = strlen(s) + 1;
-    char *p = malloc(size);
-    if (p != NULL) {
-        memcpy(p, s, size);
-    }
-    return p;
-}*/
 char *strndup(const char *s, size_t n) {
     char *p;
     size_t n1;
@@ -171,13 +162,11 @@ Lpos nextElement(List l, Lpos p){
 int insertElement(List l, char element[COMMAND_BUFFER]){
 	struct node *nwPos = (struct node *)malloc(sizeof(struct node));
 	struct node *auxPos;
-
+	
 	if(nwPos==NULL) return 0;
 
 	// Compia de un duplicado del elemento a introducir
 	strcpy(nwPos->comando, strndup(element, COMMAND_BUFFER));
-
-	//strcpy(nwPos->comando, element);
 	nwPos->next=NULL;
 
 	if(l->next==NULL)
@@ -347,11 +336,7 @@ int cmdFecha(const int lenArg, char *args[COMMAND_LEN]){
 	char datosFecha[70]="";
 	char datosHora[70]="";
 
-	int bytesFecha=0, bytesHora=0;
-	bytesFecha = strftime(datosFecha, sizeof datosFecha, "%d/%m/%Y", &tiempoLocal);
-	bytesHora = strftime(datosHora, sizeof datosHora, "%H:%M:%S", &tiempoLocal);
-
-	if(bytesFecha==0 || bytesHora==0){
+	if(strftime(datosFecha, sizeof datosFecha, "%d/%m/%Y", &tiempoLocal)==0 || strftime(datosHora, sizeof datosHora, "%H:%M:%S", &tiempoLocal)==0){
 		printf("[!] Error: %s\n", strerror(8));
 		return 1;
 	}
@@ -372,12 +357,12 @@ int cmdFecha(const int lenArg, char *args[COMMAND_LEN]){
 	return 1;
 }
 
+// Función propia de esta consola para el comando hist
 static void printNcommands(int n){
 	char comm[COMMAND_BUFFER] = "";
 	Lpos auxPos;
 	int iter=0;
 
-	// Buscar una forma de aliviar código
 	if(n>0){
 		for(auxPos=firstElement(historicList); auxPos!=NULL && iter<n; ++iter, auxPos=nextElement(historicList, auxPos)){
 			getElement(historicList, auxPos, comm);
@@ -393,6 +378,9 @@ static void printNcommands(int n){
 }
 
 int cmdHist(const int lenArg, char *args[COMMAND_LEN]){
+	char *num;
+	int n=0;
+
 	if(lenArg==1){
 		printNcommands(-1);
 		return 1;
@@ -403,8 +391,6 @@ int cmdHist(const int lenArg, char *args[COMMAND_LEN]){
 		return 1;
 	}
 
-	char *num;
-	int n=0;
 	if ((num=strtok(args[1],"-"))==NULL){
 		printf("[!] Error: %s\n", strerror(22));
 		return 1;
@@ -418,12 +404,11 @@ int cmdHist(const int lenArg, char *args[COMMAND_LEN]){
 	return 1;
 }
 
-// ====== CODIGO OFUSCADO ======
 int cmdComando(const int lenArg, char *args[COMMAND_LEN]){
 	if(lenArg>1){
 		int iter=0, nCommand = atoi(args[1]);
 		
-		if(nCommand<=0){
+		if(nCommand<=0 && strcmp(args[1], "0")!=0){
 			printf("[!] Error: %s\n", strerror(22));
 			return 1;
 		}
