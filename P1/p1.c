@@ -45,6 +45,12 @@ int cmdInfosys(const int lenArg, char *args[COMMAND_LEN]);
 int cmdHelp(const int lenArg, char *args[COMMAND_LEN]);
 int cmdExit(const int lenArg, char *args[COMMAND_LEN]);
 
+int cmdCreate(const int lenArg, char *args[COMMAND_LEN]);
+int cmdStat(const int lenArg, char *args[COMMAND_LEN]);
+int cmdList(const int lenArg, char *args[COMMAND_LEN]);
+int cmdDelete(const int lenArg, char *args[COMMAND_LEN]);
+int cmdDeltree(const int lenArg, char *args[COMMAND_LEN]);
+
 // Tablas necesarias para la práctica
 struct cmd_data{
 	char *cmd_name;
@@ -68,6 +74,7 @@ struct cmd_data cmd_table[] = {
 	{"list", NULL},
 	{"delete", NULL},
 	{"deltree", NULL},
+
 	{NULL, NULL}
 };
 
@@ -121,6 +128,7 @@ char *strndup(const char *s, size_t n) {
     return p;
 }
 static void crear_historic_dump(void *data){
+	// Liberar memoria de los datos de lalista del histórico
 	free((char *)data);
 }
 
