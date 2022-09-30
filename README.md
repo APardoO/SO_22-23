@@ -7,47 +7,47 @@ asignatura, los cales contienen la especificacion de lo que se va a tratar, como
 la documentacion de los comandos a tratar. Mas abajo se destacan los comandos tratados
 para las distintas prácticas:
 
-Práctica 0:
+## Práctica 0:
 ======================
-autores		[-l|-n]
-	[ ]	Devuelve el nombre y los logins de los autores
-	[l]	Devuelve solo los logins de los autores
-	[n]	Devuelve solo los nombres de los autores
+-autores		[-l|-n]
+>[ ]\tDevuelve el nombre y los logins de los autores
+>[l]\tDevuelve solo los logins de los autores
+>[n]\tDevuelve solo los nombres de los autores
 
-pid			[-p]
-	[ ]	Muestra el PID del proceso que ejecuta la shell
-	[p]	Muestra el PID del proceso de la shell
+-pid			[-p]
+>[ ]\tMuestra el PID del proceso que ejecuta la shell
+>[p]\tMuestra el PID del proceso de la shell
 
-carpeta		[direct]
-	[ ]			Muestra el directorio actual
-	[direct]	Cambia el directorio de trabajo al especificado
+-carpeta		[direct]
+>[ ]\t\t\tMuestra el directorio actual
+>[direct]\tCambia el directorio de trabajo al especificado
 
-fecha		[-d|-h]
-	[ ]	Muestra tanto la fecha como la hora
-	[d]	Muestra la fecha en formato DD/MM/YYYY
-	[h]	Muestra la hora en formato hh:mm:ss
+-fecha		[-d|-h]
+>[ ]\tMuestra tanto la fecha como la hora
+>[d]\tMuestra la fecha en formato DD/MM/YYYY
+>[h]\tMuestra la hora en formato hh:mm:ss
 
-hist		[-c|-N]
-	[ ]	Muestra toda la lista del historico
-	[c]	Limpia la lista del historico
-	[N]	Muestra los primeros N elementos
+-hist		[-c|-N]
+>[ ]\tMuestra toda la lista del historico
+>[c]\tLimpia la lista del historico
+>[N]\tMuestra los primeros N elementos
 
-commando	N
-	Repite el comando N del historico
+-commando	N
+>Repite el comando N del historico
 
-infosis
-	Muestra por pantalla información de la máquina que ejecuta la shell
+-infosis
+>Muestra por pantalla información de la máquina que ejecuta la shell
 
-ayuda		[cmd]
-	[ ]		Muestra por pantalla la ayuda de todos los comandos
-	[cmd]	Muestra por pantalla la ayuda asociada al comando especificado
+-ayuda		[cmd]
+>[ ]\t\tMuestra por pantalla la ayuda de todos los comandos
+>[cmd]\tMuestra por pantalla la ayuda asociada al comando especificado
 
-fin		Sale de la shell
-salir	Sale de la shell
-bye		Sale de la shell
+-fin		Sale de la shell
+-salir	Sale de la shell
+-bye		Sale de la shell
 
 
-Práctica 1:
+## Práctica 1:
 ======================
 create		[file]
 	[ ]
