@@ -8,7 +8,7 @@ la documentacion de los comandos a tratar. Mas abajo se destacan los comandos tr
 para las distintas prácticas:
 
 ## Práctica 0:
-======================
+===
 autores		[-l|-n]
 >[ ]\tDevuelve el nombre y los logins de los autores
 >[l]\tDevuelve solo los logins de los autores
