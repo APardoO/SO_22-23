@@ -45,3 +45,31 @@ ayuda		[cmd]
 fin		Sale de la shell
 salir	Sale de la shell
 bye		Sale de la shell
+
+
+Práctica 1:
+======================
+create		[file]
+	[ ]
+	[f]		Crea un fichero
+	[file]	Nombre del archivo o directorio a crear
+
+stat		[name1] [name2] [...]
+	[ ]		Muestra informacion de los archivos o directorios
+	[long]	Listado largo
+	[acc]	Muestra el tiempo de acceso
+	[link]	Muestra el path contenido si es un enlace simbólico
+	[name*]	Nombre de los archivos o directorios
+
+list		[n1] [n2] [...]
+	[ ]		Lista el contenido de directorios
+	[hid]	Muestra archivos/directorios ocultos
+	[reca]	Recursivo (antes)
+	[recb]	Recursivo (despues)
+	[$stat]	Mismos parámetros que el comando stat
+
+delete		[name1] [name2] [...]
+	[ ]		Borra ficheros o directorios vacíos
+
+deltree		[name1] [name2] [...]
+	[ ]		Borra ficheros o directorios no vacíos recursivamente
