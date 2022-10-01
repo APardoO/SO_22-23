@@ -35,6 +35,7 @@ void getCmdLine();
 int executeCommand(const int numTrozos, char *tokens[COMMAND_LEN]);
 
 // Programas shell-in Build
+// P0
 int cmdAutores(const int lenArg, char *args[COMMAND_LEN]);
 int cmdPid(const int lenArg, char *args[COMMAND_LEN]);
 int cmdCarpeta(const int lenArg, char *args[COMMAND_LEN]);
@@ -45,6 +46,7 @@ int cmdInfosys(const int lenArg, char *args[COMMAND_LEN]);
 int cmdHelp(const int lenArg, char *args[COMMAND_LEN]);
 int cmdExit(const int lenArg, char *args[COMMAND_LEN]);
 
+// P1
 int cmdCreate(const int lenArg, char *args[COMMAND_LEN]);
 int cmdStat(const int lenArg, char *args[COMMAND_LEN]);
 int cmdList(const int lenArg, char *args[COMMAND_LEN]);
@@ -69,11 +71,11 @@ struct cmd_data cmd_table[] = {
 	{"salir", cmdExit},
 	{"bye", cmdExit},
 
-	{"create", NULL},
-	{"stat", NULL},
-	{"list", NULL},
-	{"delete", NULL},
-	{"deltree", NULL},
+	{"create", NULL},	/* cmdCreate */
+	{"stat", NULL},		/* cmdStat */
+	{"list", NULL},		/* cmdList */
+	{"delete", NULL},	/* cmdDelete */
+	{"deltree", NULL},	/* cmdDeltree */
 
 	{NULL, NULL}
 };
@@ -97,10 +99,10 @@ struct cmd_help_data cmd_help[] = {
 	{"bye", "\tTermina la ejecucion del shell\n"},
 
 	{"create", "[-f] [name]\tCrea un directorio o un fichero (-f)\n"},
-	{"stat", "[-long][-link][-acc] name1 name2 .. \tlista ficheros;\n\t\t\t-long: listado largo\n\t\t\t-acc: acesstime\n\t\t\t-link: si es enlace simbolico, el path contenido\n"},
-	{"list", "[-reca] [-recb] [-hid][-long][-link][-acc] n1 n2 .. \tlista contenidos de directorios\n\t\t\t-hid: incluye los ficheros ocultos\n\t\t\t-reca: recursivo (antes)\n\t\t\t-recb: recursivo (despues)\n\t\t\tresto parametros como stat\n"},
+	{"stat", "[-long][-link][-acc] name1 name2 .. \tlista ficheros;\n\t\t-long: listado largo\n\t\t-acc: acesstime\n\t\t-link: si es enlace simbolico, el path contenido\n"},
+	{"list", "[-reca] [-recb] [-hid][-long][-link][-acc] n1 n2 .. \tlista contenidos de directorios\n\t\t-hid: incluye los ficheros ocultos\n\t\t-reca: recursivo (antes)\n\t\t-recb: recursivo (despues)\n\t\tresto parametros como stat\n"},
 	{"delete", "[name1 name2 ..]\tBorra ficheros o directorios vacios\n"},
-	{"deltree", "[name1 name2 ..]\t\tBorra ficheros o directorios no vacios recursivamente\n"},
+	{"deltree", "[name1 name2 ..]\tBorra ficheros o directorios no vacios recursivamente\n"},
 	
 	{NULL, NULL}
 };
@@ -409,4 +411,31 @@ int cmdHelp(const int lenArg, char *args[COMMAND_LEN]){
 
 int cmdExit(const int lenArg, char *args[COMMAND_LEN]){
 	return 0;
+}
+
+
+
+int cmdCreate(const int lenArg, char *args[COMMAND_LEN]){
+	// Si solo se pasa el nombre se crea un directorio
+	// Si se pasa con -f se crea un archivo
+	return 1;
+}
+int cmdStat(const int lenArg, char *args[COMMAND_LEN]){
+	// stat [path] -> (size) (path)
+	// stat -long [path] -> (fecha-hora) (nipu) (nipu) (usuairo) (grupo) (permisos) (size) (path)
+	// stat -acc [path] -> no sense
+	// stat -long -link [path] -> puta mierda xd
+	return 1;
+}
+int cmdList(const int lenArg, char *args[COMMAND_LEN]){
+	// Code
+	return 1;
+}
+int cmdDelete(const int lenArg, char *args[COMMAND_LEN]){
+	// Code
+	return 1;
+}
+int cmdDeltree(const int lenArg, char *args[COMMAND_LEN]){
+	// Code
+	return 1;
 }
