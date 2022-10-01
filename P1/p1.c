@@ -423,8 +423,8 @@ int cmdCreate(const int lenArg, char *args[COMMAND_LEN]){
 int cmdStat(const int lenArg, char *args[COMMAND_LEN]){
 	// stat [path] -> (size) (path)
 	// stat -long [path] -> (fecha-hora) (nipu) (nipu) (usuairo) (grupo) (permisos) (size) (path)
-	// stat -acc [path] -> no sense
-	// stat -long -link [path] -> puta mierda xd
+	// stat -acc [path] -> 
+	// stat -long -link [path] -> 
 	return 1;
 }
 int cmdList(const int lenArg, char *args[COMMAND_LEN]){
