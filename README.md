@@ -1,75 +1,112 @@
 # SO_22-23
-Asignatura de Sistemas Operativos de la Facultad de Informática, curso 2022-2023
 
-En este repositorio se verán las prácticas de la asignatura de Sistemas Operativos
-de la facultad de informática de la UDC. Se recogerán tanto los archivos pdf de la
-asignatura, los cales contienen la especificacion de lo que se va a tratar, como
-la documentacion de los comandos a tratar. Mas abajo se destacan los comandos tratados
-para las distintas prácticas:
+>Authors: [@ApardoO](https://www.github.com/ApardoO) [@Hugoocb](https://www.github.com/Hugoocb)
 
-## Práctica 0:
-===
-autores		[-l|-n]
->[ ]\tDevuelve el nombre y los logins de los autores
->[l]\tDevuelve solo los logins de los autores
->[n]\tDevuelve solo los nombres de los autores
+Sistemas Operativos_Facultad de Ingeniería Informática_curso 2022-2023
 
-pid			[-p]
->[ ]\tMuestra el PID del proceso que ejecuta la shell
->[p]\tMuestra el PID del proceso de la shell
+En este repositorio se verán las prácticas de la asignatura de Sistemas Operativos, impartida en el tercer cuatrimestre del Grado en Ingeniería Informática. Se recogerán tanto los archivos pdf de la asignatura, los cuales contienen tanto los pasos a seguir como la especificación de los comandos a implementar por práctica, como los archivos con el código fuente del programa.
 
-carpeta		[direct]
->[ ]\t\t\tMuestra el directorio actual
->[direct]\tCambia el directorio de trabajo al especificado
+## Dependences
 
-fecha		[-d|-h]
->[ ]\tMuestra tanto la fecha como la hora
->[d]\tMuestra la fecha en formato DD/MM/YYYY
->[h]\tMuestra la hora en formato hh:mm:ss
+En caso de un mal funcionamiento, ejecutar los siguientes comandos para resolver las posibles dependencias:
 
-hist		[-c|-N]
->[ ]\tMuestra toda la lista del historico
->[c]\tLimpia la lista del historico
->[N]\tMuestra los primeros N elementos
+```bash
+sudo apt-get update
+sudo apt-get install make valgrind -y
+```
 
-commando	N
->Repite el comando N del historico
+## Running Tests
 
-infosis
->Muestra por pantalla información de la máquina que ejecuta la shell
+Para comprobar que la práctica se compila, ejecuta y libera la memoria reservada, podemos usar el comando `make` dentro de los directorios de prácticas con los archivos `makefile` de configuración adecuado para cada práctica. En caso de una comprobación rápida, podemos usar, cambiando `output_file` por el nombre del archivo de salida adecuado:
 
-ayuda		[cmd]
->[ ]\t\tMuestra por pantalla la ayuda de todos los comandos
->[cmd]\tMuestra por pantalla la ayuda asociada al comando especificado
+```bash
+gcc -std=c99 -g -Wall -pedantic -Werror -o output_file *.c
+valgrind --tool=memcheck ./output_file
+```
 
-fin		Sale de la shell
-salir	Sale de la shell
-bye		Sale de la shell
+## Practica 0
+
+En esta práctica, se tomará contacto con el lenguaje C. Crearemos una shell interactiva, se añadirán comandos en las próximas prácticas o versiones de la shell. Nuestra shell se basará en cinco fases:
+
+* Mostrar el _prompt_
+* Lectura mediante la librería estándar de entrada y salida, el imput de un comando
+* Guardar, si es válido el comando introducido en una lista histórica de comandos
+* Separar el comando en argumentos
+* Procesar el comadno con sus argumentos
+
+### Comandos
+
+| Command   | Paramether | Description                                                         |
+| :-------- | :--------- | :------------------------------------------------------------------ |
+| `autores` |            | Devuelve el nombre y los logins de los autores                      |
+|           | `-l`       | Devuelve solo los loguins de los autores                            |
+|           | `-n`       | Devuelve solo los nombres de los autores                            |
+| `pid`     |            | Muestra el PID del proceso que ejecuta la shell                     |
+|           | `-p`       | Muestra el PID del proceso de la shell                              |
+| `carpeta` |            | Muestra el directorio actual                                        |
+|           | `path`     | Cambia el directorio de trabajo al especificado                     |
+| `fecha`   |            | Muestra tanto la fecha como la hora                                 |
+|           | `-d`       | Muestra la fecha en formato `DD/MM/YYY`                             |
+|           | `-h`       | Muestra la hora en formato `hh:mm:ss`                               |
+| `hist`    |            | Muestra toda la lista del historico                                 |
+|           | `-c`       | Limpia la lista del histórico                                       |
+|           | `-N`       | Muestra los primeros `N` elementos                                  |
+| `comando` | `N`        | Repite el comando `N` del histórico                                 |
+| `infosis` |            | Muestra por pantalla información de la máquina que ejecuta la shell |
+| `auyda`   |            | Muestra por pantalla la ayuda de todos los comadnos                 |
+|           | `cmd`      | Muestra por pantalla la ayuda asociada al comando especificado      |
+| `fin`     |            | Sale de la shell                                                    |
+| `salir`   |            | Sale de la shell                                                    |
+| `bye`     |            | Sale de la shell                                                    |
+
+### Clues
+
+Descripción básica de la shell:
+
+```c
+while(!terminado){
+  imprimirPrompt();     # Llamada a printf()
+  leerEntrada();        # Llamada a fgets()
+  procesarEntrada();
+}
+```
+
+El primer paso es `procesar la entrada` separando en parametros los argumentos del comando introducido, para ello se faculita la función `TrocearCadena()`:
+
+```c
+int TrocearCadena(char * cadena, char * trozos[]){
+  int i=1;
+  if ((trozos[0]=strtok(cadena, " \n\t"))==NULL)
+    return 0;
+  while ((trozos[i]=strtok(NULL, " \n\t"))!=NULL)
+    i++;
+  return i;
+}
+```
 
 
-## Práctica 1:
-===
-create		[file]
-	[ ]
-	[f]		Crea un fichero
-	[file]	Nombre del archivo o directorio a crear
+## Practica 1
 
-stat		[name1] [name2] [...]
-	[ ]		Muestra informacion de los archivos o directorios
-	[long]	Listado largo
-	[acc]	Muestra el tiempo de acceso
-	[link]	Muestra el path contenido si es un enlace simbólico
-	[name*]	Nombre de los archivos o directorios
+Cuando una salida del programa ejecutado no es satisfacctoria, se devuelve un código esoecial (generalmente -1) que se almacenará en una variable global del sistema `errno` para códigos de error. `man` proporciona información de por qué se devuelve dicho código de error.
 
-list		[n1] [n2] [...]
-	[ ]		Lista el contenido de directorios
-	[hid]	Muestra archivos/directorios ocultos
-	[reca]	Recursivo (antes)
-	[recb]	Recursivo (despues)
-	[$stat]	Mismos parámetros que el comando stat
+* **perror()**: Muestra por la salida estándar un mensaje de error (por pantalla, si no se ha redireccionado la salida).
+* **strerror()**: Retorna un puntero con la cadena de texto con el mensaje de error relacionado a un código pasado por parámetro.
+* **extern char * sys_errlist[]**: Matriz que contiene la descripción de error indexada por número de error para que `sys_errlist[errno]` tenga una descripción del error asociado con errno.
 
-delete		[name1] [name2] [...]
-	[ ]		Borra ficheros o directorios vacíos
+### Comandos
 
-deltree		[name1] [name2] [...]
-	[ ]		Borra ficheros o directorios no vacíos recursivamente
+| Command   | Paramether            | Description                                          |
+| :-------- | :-------------------- | :--------------------------------------------------- |
+| `create`  | `file_name`           | Nombre del directorio a crear                        |
+|           | `-f`                  | Crea un fichero                                      |
+| `stat`    | `name1` `name2` `...` | Muestra información de los archvos o directorios     |
+|           | `-long`               | Formato largo                                        |
+|           | `-acc`                | Muestra el tiempo de acceso                          |
+|           | `-link`               | Muestra el path contenido si es un enlace simbólico  |
+| `list`    | `name1` `name2` `...` | Lista el contenido de los directorios                |
+|           | `-hid`                | Muestra archivos/directorios ocultos                 |
+|           | `-reca`               | Recursivo (antes)                                    |
+|           | `-recb`               | Recursivo (despues)                                  |
+|           | `*stat`               | Mismos parámetros que el comando stat                |
+| `delete`  | `name1` `name2` `...` | Borra ficheros o directorios vacíos                  |
+| `deltree` | `name1` `name2` `...` | Borra fichers o directorios no vacíos recursivamente |
