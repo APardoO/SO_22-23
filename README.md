@@ -17,11 +17,10 @@ sudo apt-get install make valgrind -y
 
 ## Running Tests
 
-Para comprobar que la práctica se compila, ejecuta y libera la memoria reservada, podemos usar el comando `make` dentro de los directorios de prácticas con los archivos `makefile` de configuración adecuado para cada práctica. En caso de una comprobación rápida, podemos usar, cambiando `output_file` por el nombre del archivo de salida adecuado:
+Para comprobar que la práctica se compila, ejecuta y libera la memoria reservada, podemos usar el comando `make` dentro de los directorios de prácticas con los archivos `makefile` de configuración adecuado para cada práctica y valgrind para la comprobación de memporia. Para hacerlo rápido ejecutar el siguiente comando cambiando el nombre `output_file` por el correspondiente:
 
 ```bash
-gcc -std=c99 -g -Wall -pedantic -Werror -o output_file *.c
-valgrind --tool=memcheck ./output_file
+make && valgrind --tool=memcheck ./bin/output_file
 ```
 
 ## Practica 0
