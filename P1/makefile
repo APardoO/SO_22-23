@@ -1,13 +1,26 @@
-all: p1
+TARGET = $(BIN_DIR)/p1
 
-List.o: List.c List.h
-	@gcc -c List.c
+OBJ_DIR = obj
+BIN_DIR = bin
+INCDIR = inc
+SRC_DIR = src
 
-p1.o: p1.c List.h
-	@gcc -c p1.c
+OBJS = $(OBJ_DIR)/p1.o \
+	   $(OBJ_DIR)/List.o
+CFLAGS = -std=c99 -g -Wall -pedantic -Werror -I$(INCDIR)
 
-p1: p1.o List.o
-	@gcc -std=c99 -g -Wall -pedantic -Werror -o p1 p1.o List.c
+all: $(TARGET)
 
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
+	mkdir -p $(OBJ_DIR)
+	gcc -c -MD $(CFLAGS) $< -o $@
+
+-include $(OBJ_DIR)/*.d
+
+$(TARGET): $(OBJS)
+	mkdir -p $(BIN_DIR)
+	gcc $(CFLAGS) -o $(TARGET) $(OBJS)
+
+.PHONY: clean
 clean:
-	@rm p1 *.o
+	@rm -r $(OBJ_DIR) $(BIN_DIR)
