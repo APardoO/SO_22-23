@@ -116,7 +116,7 @@ Para poder desenvolver la práctica podemos tomar una idea de los siguientes có
 
 Para capturar los el tipo de archivo:
 
-```
+```c
 char LetraTF (mode_t m){
 	switch (m&S_IFMT){	/*and bit a bit con los bits de formato,0170000 */
 		case S_IFSOCK:	return ’s’; /*socket */
@@ -133,7 +133,7 @@ char LetraTF (mode_t m){
 
 Obtención de permisos por el primer método:
 
-```
+```c
 char * ConvierteModo (mode_t m, char *permisos){
 	strcpy (permisos,"---------- ");
 	permisos[0]=LetraTF(m);
@@ -155,7 +155,7 @@ char * ConvierteModo (mode_t m, char *permisos){
 
 Obtención de permisos por el segundo método:
 
-```
+```c
 char * ConvierteModo2 (mode_t m){
 	static char permisos[12];
 	strcpy (permisos,"---------- ");
@@ -179,7 +179,7 @@ char * ConvierteModo2 (mode_t m){
 
 Obtención de permisos por el tercer método:
 
-```
+```c
 char * ConvierteModo3 (mode_t m){
 	char * permisos;
 	permisos=(char *) malloc (12);
