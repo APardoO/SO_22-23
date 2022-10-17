@@ -7,7 +7,7 @@ SRC_DIR = src
 
 OBJS = $(OBJ_DIR)/p1.o \
 	   $(OBJ_DIR)/List.o
-CFLAGS = -std=c99 -g -Wall -pedantic -Werror -I$(INCDIR)
+CFLAGS = -g -Wall -pedantic -Werror -I$(INCDIR)
 
 all: $(TARGET)
 
@@ -24,3 +24,6 @@ $(TARGET): $(OBJS)
 .PHONY: clean
 clean:
 	@rm -r $(OBJ_DIR) $(BIN_DIR)
+
+memcheck:
+	valgrind --tool=memcheck -s --log-file="lakmem" ./$(TARGET)
