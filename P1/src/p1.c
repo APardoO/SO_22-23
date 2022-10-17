@@ -7,12 +7,20 @@
 
 	Grupo: 2.1
 	========================================= */
+
+// Conseguir hacer trap del ctrl_C y una lista con las direcciones de memoria donde se
+// reserva memoria para liverar la memoria cuando sea una salida forzosa del programa
+
+#include <pwd.h>					// Aporta la definicion de datos de la estructura passwd
+#include <grp.h>					// Aporta la definicion de datos de los grupos de linux
 #include <time.h>					// Librería de tiempo del sistema
 #include <stdio.h>					// Librería estándar de entrada/salida
 #include <stdlib.h>					// Librería de conversión, memoria, procesos...
 #include <string.h>					// Librería de tratamiento de "strings"
 #include <unistd.h>					// Librería de funcionalidades del sistema
 #include <errno.h>					// Librería de captador de errores
+#include <sys/stat.h>				// Obtener información de los archivos
+#include <sys/types.h>				// Obtiene los tipos de datos del sistema
 #include <sys/utsname.h>			// Obtiene informacñon del sistema [LINUX]
 
 #include "List.h"					// Librería con las funcionalidades de la lista
@@ -20,6 +28,7 @@
 // Definiciones globales de la shell
 #define COMMAND_LEN		512			// Longitud de cada parametro
 #define COMMAND_BUFFER	4096		// Longitud máxima del comando introducido
+#define MAX_NAME_LEN	70			// Longitud máxima para nombres auxiliares del programa 'char[]'
 
 // Definiciones globales
 int argLen=0;						// Número de parametros del comadno introducido
@@ -72,7 +81,7 @@ struct cmd_data cmd_table[] = {
 	{"bye", cmdExit},
 
 	{"create", NULL},	/* cmdCreate */
-	{"stat", NULL},		/* cmdStat */
+	{"stat", cmdStat},
 	{"list", NULL},		/* cmdList */
 	{"delete", NULL},	/* cmdDelete */
 	{"deltree", NULL},	/* cmdDeltree */
@@ -150,13 +159,13 @@ int main(int argc, char const *argv[]){
 	return 0;
 }
 
+// ==================== PRÁCTICA 0 ====================
 
 // == SYSTEM METHODS ==
 // Imprime por pantalla el propmt del usuario
 void printPrompt(){
 	printf("[#]~$ ");
 }
-
 // Sepra la línea en partes usando como delimitador los espacios(' '), saltos de línea('\n') y tabuladores('\t')
 int TrocearCadena(char *line, char *tokens[]){
 	int i = 1;
@@ -166,7 +175,6 @@ int TrocearCadena(char *line, char *tokens[]){
 		i++;
 	return i;
 }
-
 // Línea donde el usuario introduce el comando, se guarda en el histórico y se comprueba si es válido
 void getCmdLine(){
 	// Comprobar que la lista está inicializada
@@ -198,7 +206,6 @@ void getCmdLine(){
 		argLen = 0;
 	}
 }
-
 // Método que ejecuta el comando introducido por el usuario
 int executeCommand(const int numTrozos, char *tokens[COMMAND_LEN]){
 	int i=0;
@@ -246,7 +253,6 @@ int cmdAutores(const int lenArg, char *args[COMMAND_LEN]){
 
 	return 1;
 }
-
 int cmdPid(const int lenArg, char *args[COMMAND_LEN]){
 	if(lenArg==1){
 		printf("Pid de shell: %d\n", getppid());
@@ -260,29 +266,29 @@ int cmdPid(const int lenArg, char *args[COMMAND_LEN]){
 	
 	return 1;
 }
-
+static int currentDirectory(){
+	char path[COMMAND_BUFFER];
+	if(getcwd(path, COMMAND_BUFFER)==NULL)
+		printf("[!] Error: %s\n", strerror(20));
+	else
+		printf("%s\n", path);
+	return 1;
+}
 int cmdCarpeta(const int lenArg, char *args[COMMAND_LEN]){
-	if(lenArg==1){
-		char path[COMMAND_BUFFER];
-		if(getcwd(path, COMMAND_BUFFER)==NULL)
-			printf("[!] Error: %s\n", strerror(20));
-		else
-			printf("%s\n", path);
-		return 1;
-	}
+	if(lenArg==1)
+		return currentDirectory();
 
 	if(chdir(args[1])!=0)
 		printf("[!] Error: %s\n", strerror(2));
 	return 1;
 }
-
 // ====== CODIGO OFUSCADO ======
 int cmdFecha(const int lenArg, char *args[COMMAND_LEN]){
 	time_t crrent_time = time(NULL);
 	struct tm tiempoLocal = *localtime(&crrent_time);
 
-	char datosFecha[70]="";
-	char datosHora[70]="";
+	char datosFecha[MAX_NAME_LEN]="";
+	char datosHora[MAX_NAME_LEN]="";
 
 	if(strftime(datosFecha, sizeof datosFecha, "%d/%m/%Y", &tiempoLocal)==0 || strftime(datosHora, sizeof datosHora, "%H:%M:%S", &tiempoLocal)==0){
 		printf("[!] Error: %s\n", strerror(8));
@@ -304,7 +310,6 @@ int cmdFecha(const int lenArg, char *args[COMMAND_LEN]){
 		printf("[!] Error: %s\n", strerror(22));
 	return 1;
 }
-
 static void printNcommands(int n){
 	Lpos auxPos;
 	int iter=0;
@@ -319,7 +324,6 @@ static void printNcommands(int n){
 			printf("%d->%s\n", iter, (char *)getElement(historicList, auxPos));
 	}
 }
-
 int cmdHist(const int lenArg, char *args[COMMAND_LEN]){
 	if(lenArg==1){
 		printNcommands(-1);
@@ -345,7 +349,6 @@ int cmdHist(const int lenArg, char *args[COMMAND_LEN]){
 	
 	return 1;
 }
-
 // ====== CODIGO OFUSCADO ======
 int cmdComando(const int lenArg, char *args[COMMAND_LEN]){
 	if(lenArg>1){
@@ -376,7 +379,6 @@ int cmdComando(const int lenArg, char *args[COMMAND_LEN]){
 	printNcommands(-1);
 	return 1;
 }
-
 int cmdInfosys(const int lenArg, char *args[COMMAND_LEN]){
 	struct utsname systemData;
 	if(uname(&systemData)==-1)
@@ -386,7 +388,6 @@ int cmdInfosys(const int lenArg, char *args[COMMAND_LEN]){
 
 	return 1;
 }
-
 int cmdHelp(const int lenArg, char *args[COMMAND_LEN]){
 	int i=0;
 
@@ -408,25 +409,128 @@ int cmdHelp(const int lenArg, char *args[COMMAND_LEN]){
 
 	return 1;
 }
-
 int cmdExit(const int lenArg, char *args[COMMAND_LEN]){
 	return 0;
 }
 
+// ==================== PRÁCTICA 1 ====================
 
+static char LetraTF(mode_t m){
+	switch (m&S_IFMT){	/*and bit a bit con los bits de formato,0170000 */
+		case S_IFSOCK:	return 's'; /*socket */
+		case S_IFLNK:	return 'l';	/*symbolic link*/
+		case S_IFREG:	return '-';	/* fichero normal*/
+		case S_IFBLK:	return 'b';	/*block device*/
+		case S_IFDIR:	return 'd';	/*directorio */
+		case S_IFCHR:	return 'c';	/*char device*/
+		case S_IFIFO:	return 'p';	/*pipe*/
+		default: return '?';	/*desconocido, no deberia aparecer*/
+	}
+}
+static char * ConvierteModo2(mode_t m){
+	static char permisos[12];
+	strcpy (permisos,"---------- ");
 
+	permisos[0]=LetraTF(m);
+	if (m&S_IRUSR) permisos[1]='r';    /*propietario*/
+	if (m&S_IWUSR) permisos[2]='w';
+	if (m&S_IXUSR) permisos[3]='x';
+	if (m&S_IRGRP) permisos[4]='r';    /*grupo*/
+	if (m&S_IWGRP) permisos[5]='w';
+	if (m&S_IXGRP) permisos[6]='x';
+	if (m&S_IROTH) permisos[7]='r';    /*resto*/
+	if (m&S_IWOTH) permisos[8]='w';
+	if (m&S_IXOTH) permisos[9]='x';
+	if (m&S_ISUID) permisos[3]='s';    /*setuid, setgid y stickybit*/
+	if (m&S_ISGID) permisos[6]='s';
+	if (m&S_ISVTX) permisos[9]='t';
+
+	return permisos;
+}
 int cmdCreate(const int lenArg, char *args[COMMAND_LEN]){
 	// Si solo se pasa el nombre se crea un directorio
 	// Si se pasa con -f se crea un archivo
 	return 1;
 }
+
+// ====== POSIBLE CODIGO OFUSCADO ====== >> BUSCAR OPTIMIZACION DEL CODIGO
+static void print_stat_info(const char *name, const struct stat *std, int longp, int accp, int linkp){	
+	if(longp==1){
+		struct tm tiempoLocal;
+		struct passwd *pws=getpwuid(std->st_uid);
+		struct group *grp=getgrgid(std->st_gid);
+		char fecha[MAX_NAME_LEN]="", *permisos=NULL, linkName[MAX_NAME_LEN]=" ", user[MAX_NAME_LEN], group[MAX_NAME_LEN];
+		
+		// Permisos del archivo
+		permisos = ConvierteModo2(std->st_mode);
+
+		// Parseo del nombre de usuario
+		if(pws!=NULL)	sprintf(user, "%s", pws->pw_name);
+		else			sprintf(user, "%d", std->st_uid);
+
+		// Parseo del nombre del grupo
+		if(grp!=NULL)	sprintf(group, "%s", grp->gr_name);
+		else			sprintf(group, "%d", std->st_gid);
+
+		// Parseo del tiempo de acceso
+		if(accp==1)		tiempoLocal = *localtime(&(std->st_atime));
+		else			tiempoLocal = *localtime(&(std->st_ctime));
+		if(strftime(fecha, sizeof(fecha), "%Y/%m/%d-%H:%M", &tiempoLocal)==0) return;
+
+		// Printeo parcial/completo de los datos por pantalla
+		printf("%s %3ld (%8ld) %8s %8s %s%8ld %s", fecha, std->st_nlink, std->st_ino, user, group, permisos, std->st_size, name);
+
+		// Comprobando el linkeo
+		if(linkp==1 && permisos[0]=='l'){
+			readlink(name, linkName, sizeof(linkName));
+			printf(" -> %s", linkName);
+		}
+
+	}else
+		printf("\t%ld\t%s", std->st_size, name);
+	printf("\n");
+}
 int cmdStat(const int lenArg, char *args[COMMAND_LEN]){
-	// stat [path] -> (size) (path)
-	// stat -long [path] -> (fecha-hora) (nipu) (nipu) (usuairo) (grupo) (permisos) (size) (path)
-	// stat -acc [path] -> 
-	// stat -long -link [path] -> 
+	struct stat *std;
+	int i=1, numFiles=0, longp=0, accp=0, linkp=0;
+
+	// Longitud del comando
+	if(lenArg==1)
+		return currentDirectory();
+
+	// Parseo de parámetros
+	while(i<lenArg){
+		if(args[i][0]=='-'){
+			if(strcmp(args[i], "-long")==0)
+				longp=1;
+			if(strcmp(args[i], "-acc")==0)
+				accp=1;
+			if(strcmp(args[i], "-link")==0)
+				linkp=1;
+		}else
+			++numFiles;
+		++i;
+	}
+
+	// Comprobando que hay archivos a los que hacer un status
+	if(numFiles==0)
+		return currentDirectory();
+	
+	// Reservamos memoria para el stat -> Falta imprimir por pantalla el error de memoria
+	if((std=(struct stat *)malloc(sizeof(struct stat)))==NULL) return 1;
+
+	for(i=1; i<lenArg; ++i){
+		if(lstat(args[i], std)==0)
+			print_stat_info(args[i], std, longp, accp, linkp);
+		else
+			if(args[i][0]!='-')
+				printf(" ****error al acceder a %s:No such file or directory\n", args[i]);
+	}
+
+	free(std);
 	return 1;
 }
+
 int cmdList(const int lenArg, char *args[COMMAND_LEN]){
 	// Code
 	return 1;
