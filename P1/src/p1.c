@@ -22,14 +22,16 @@
 #include <sys/stat.h>				// Obtener información de los archivos
 #include <sys/types.h>				// Obtiene los tipos de datos del sistema
 #include <sys/utsname.h>			// Obtiene informacñon del sistema [LINUX]
-
+#include <sys/stat.h>
+#include <fcntl.h>
 #include "List.h"					// Librería con las funcionalidades de la lista
 
+#include "List.c"
 // Definiciones globales de la shell
 #define COMMAND_LEN		512			// Longitud de cada parametro
 #define COMMAND_BUFFER	4096		// Longitud máxima del comando introducido
 #define MAX_NAME_LEN	70			// Longitud máxima para nombres auxiliares del programa 'char[]'
-
+#define MAX_PATH 1024			//Longitud máxima para el path
 // Definiciones globales
 int argLen=0;						// Número de parametros del comadno introducido
 char *args[COMMAND_LEN];			// Parámetros del comando introducido
@@ -80,7 +82,7 @@ struct cmd_data cmd_table[] = {
 	{"salir", cmdExit},
 	{"bye", cmdExit},
 
-	{"create", NULL},	/* cmdCreate */
+	{"create", cmdCreate},	/* cmdCreate */
 	{"stat", cmdStat},
 	{"list", NULL},		/* cmdList */
 	{"delete", NULL},	/* cmdDelete */
@@ -448,8 +450,37 @@ static char * ConvierteModo2(mode_t m){
 	return permisos;
 }
 int cmdCreate(const int lenArg, char *args[COMMAND_LEN]){
-	// Si solo se pasa el nombre se crea un directorio
-	// Si se pasa con -f se crea un archivo
+	
+	char error [MAX_NAME_LEN] = "[!] Error";
+	if(lenArg >1){
+	
+	char path [MAX_PATH];
+	
+	
+	getcwd(path,sizeof(path));
+	strcat(path,"/");
+	
+	if(strcmp(args[1],"-f") == 0){		// Si se pasa con -f se crea un archivo
+		char* name = args[2];
+		if(creat(strcat(path,name),0666) == -1){
+			perror(error);
+			}
+		
+	}else{				// Si solo se pasa el nombre se crea un directorio
+		
+			char* name = args[1];
+			if(mkdir(strcat(path,name), 0666) ==-1){
+				perror(error);	
+			}
+		}
+	
+	
+	}else {
+	
+	perror(error);
+	return -1;
+	}
+	
 	return 1;
 }
 
