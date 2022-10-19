@@ -613,10 +613,9 @@ static void print_dir_data(const char *name, int hidp, int longp, int accp, int 
 }
 static void process_dir_data(const char *name, int recap, int recbp, int hidp, int longp, int accp, int linkp){
 	DIR *dir;
-	struct dirent *ent=NULL;
+	register struct dirent *ent=NULL;
 	struct stat fStd;
 	char inn_name[PHARAM_LEN];
-	char *permisos;
 
 	// Abrimos el directorio
 	if((dir=opendir(name))!=NULL){
@@ -632,17 +631,8 @@ static void process_dir_data(const char *name, int recap, int recbp, int hidp, i
 			sprintf(inn_name, "%s/%s", name, ent->d_name);
 
 			// Obtenemos los datos del archivo
-			if(lstat(inn_name, &fStd)==0){
-				permisos=ConvierteModo2(fStd.st_mode);
-
-				// Comprobamos que sea un directorio oculto
-				if(hidp==1 && permisos[0]=='d')
-					list_fd_data(inn_name, &fStd, recap, recbp, hidp, longp, accp, linkp);
-				else{
-					if(permisos[0]=='d')
-						list_fd_data(inn_name, &fStd, recap, recbp, hidp, longp, accp, linkp);
-				}
-			}
+			if(lstat(inn_name, &fStd)==0 && ConvierteModo2(fStd.st_mode)[0]=='d')
+				list_fd_data(inn_name, &fStd, recap, recbp, hidp, longp, accp, linkp);
 		}
 
 		// Cerramos el directorio
