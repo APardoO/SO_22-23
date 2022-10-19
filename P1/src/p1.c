@@ -599,11 +599,13 @@ static void print_dir_data(const char *name, int hidp, int longp, int accp, int 
 			sprintf(inn_name, "%s/%s", name, ent->d_name);
 
 			// -hid pasado como parametro
-			if(hidp==1 && lstat(inn_name, &fStd)==0)
-				print_file_info(ent->d_name, inn_name, &fStd, longp, accp, linkp);
-			else
-				if(ent->d_name[0]!='.' && lstat(inn_name, &fStd)==0)
+			if(lstat(inn_name, &fStd)==0){
+				if(hidp==1)
 					print_file_info(ent->d_name, inn_name, &fStd, longp, accp, linkp);
+				else
+					if(ent->d_name[0]!='.')
+						print_file_info(ent->d_name, inn_name, &fStd, longp, accp, linkp);
+			}
 		}
 
 		// Cerramos el directorio
