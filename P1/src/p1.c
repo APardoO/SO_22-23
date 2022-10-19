@@ -66,7 +66,6 @@ int cmdDeltree(const int lenArg, char *args[PHARAM_LEN]);
 
 // ===== Métodos estáticos de la shell =====
 // P0
-static void crear_historic_dump(void *data);
 static int currentDirectory();
 static char *currentDate();
 static char *currentHour();
@@ -159,11 +158,6 @@ char *strndup(const char *s, size_t n) {
     }
     return p;
 }
-static void crear_historic_dump(void *data){
-	// Liberar memoria de los datos de lalista del histórico
-	free((char *)data);
-}
-
 
 /* == MAIN FUNCTION == */
 int main(int argc, char const *argv[]){
@@ -179,7 +173,7 @@ int main(int argc, char const *argv[]){
 	}while(executeCommand(argLen, args)!=0);
 
 	// Liberar la memoria de la lista
-	deleteList(historicList, crear_historic_dump);
+	deleteList(historicList, free);
 	return 0;
 }
 
@@ -257,11 +251,12 @@ int executeCommand(const int numTrozos, char *tokens[PHARAM_LEN]){
 
 	return 1;
 }
-// Método que redirecciona la saliza forzosa del programa para liverar la memoria
-// reservada dinámicamente
+// Método que redirecciona la saliza forzosa del programa para liberar la memoria dinámica
 void sighandler(int signum){
-	// Liberar la memoria de la lista
-	deleteList(historicList, crear_historic_dump);
+	// Memoria reservada para el histórico
+	deleteList(historicList, free);
+
+	// Salida forzosa del programa
 	exit(1);
 }
 
@@ -365,7 +360,7 @@ int cmdHist(const int lenArg, char *args[PHARAM_LEN]){
 	}
 
 	if(strcmp(args[1], "-c")==0){
-		clearList(historicList, crear_historic_dump);
+		clearList(historicList, free);
 		return 1;
 	}
 
@@ -387,11 +382,11 @@ int cmdHist(const int lenArg, char *args[PHARAM_LEN]){
 int cmdComando(const int lenArg, char *args[PHARAM_LEN]){
 	register int iter=0;
 	int nCommand=0;
-	Lpos auxPos;
 	
 	if(lenArg>1){
+		args[1][0]='0';
 		nCommand=atoi(args[1]);
-		if(nCommand<=0 && strcmp(args[1], "0")!=0){
+		if(nCommand<=0 && args[1][1]!='0'){
 			printf("[!] Error: %s\n", strerror(22));
 			return 1;
 		}
