@@ -4,6 +4,7 @@ OBJ_DIR = obj
 BIN_DIR = bin
 INCDIR = inc
 SRC_DIR = src
+LAK_NAME = lakemem
 
 OBJS = $(OBJ_DIR)/p1.o \
 	   $(OBJ_DIR)/List.o
@@ -23,7 +24,7 @@ $(TARGET): $(OBJS)
 
 .PHONY: clean
 clean:
-	@rm -r $(OBJ_DIR) $(BIN_DIR)
+	@rm -r $(OBJ_DIR) $(BIN_DIR) $(LAK_NAME)
 
 memcheck:
-	valgrind --tool=memcheck -s --log-file="lakmem" ./$(TARGET)
+	valgrind --tool=memcheck -s --log-file=$(LAK_NAME) ./$(TARGET)
