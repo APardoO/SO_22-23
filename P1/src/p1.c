@@ -378,10 +378,10 @@ int cmdHist(const int lenArg, char *args[PHARAM_LEN]){
 	
 	return 1;
 }
-// ====== CODIGO OFUSCADO ====== >> Modificar -N no N
 int cmdComando(const int lenArg, char *args[PHARAM_LEN]){
 	register int iter=0;
 	int nCommand=0;
+	Lpos auxPos;
 	
 	if(lenArg>1){
 		args[1][0]='0';
@@ -521,7 +521,7 @@ static void print_file_info(const char *name, const char *allPath, const struct 
 		struct tm tl;
 		struct passwd *pws=getpwuid(std->st_uid);
 		struct group *grp=getgrgid(std->st_gid);
-		char fecha[MAX_NAME_LEN]="", *permisos=ConvierteModo2(std->st_mode), linkName[MAX_NAME_LEN]=" ", user[MAX_NAME_LEN], group[MAX_NAME_LEN];
+		char *permisos=ConvierteModo2(std->st_mode), linkName[MAX_NAME_LEN]=" ", user[MAX_NAME_LEN], group[MAX_NAME_LEN];
 
 		// Parseo del nombre de usuario
 		if(pws!=NULL)	sprintf(user, "%s", pws->pw_name);
@@ -534,17 +534,14 @@ static void print_file_info(const char *name, const char *allPath, const struct 
 		// Parseo del tiempo de acceso
 		if(accp==1)		tl = *localtime(&(std->st_atime));
 		else			tl = *localtime(&(std->st_ctime));
-		sprintf(fecha, "%04d/%02d/%02d-%02d:%02d", tl.tm_year+1900, tl.tm_mon+1, tl.tm_mday, tl.tm_hour, tl.tm_min);
 
 		// Printeo parcial/completo de los datos por pantalla
-		printf("%s %3ld (%8ld) %8s %8s %s%8ld %s", fecha, std->st_nlink, std->st_ino, user, group, permisos, std->st_size, name);
+		printf("%04d/%02d/%02d-%02d:%02d ", tl.tm_year+1900, tl.tm_mon+1, tl.tm_mday, tl.tm_hour, tl.tm_min);
+		printf("%3ld (%8ld) %8s %8s %s%8ld %s", std->st_nlink, std->st_ino, user, group, permisos, std->st_size, name);
 
 		// Comprobando el linkeo
 		if(linkp==1 && permisos[0]=='l'){
-			if(allPath!=NULL)
-				readlink(allPath, linkName, sizeof(linkName));
-			else
-				readlink(name, linkName, sizeof(linkName));
+			readlink((allPath!=NULL)? allPath : name, linkName, sizeof(linkName));
 			printf(" -> %s", linkName);
 		}
 
@@ -723,6 +720,7 @@ int cmdDelete(const int lenArg, char *args[PHARAM_LEN]){
     }
     return 1;
 }
+
 int cmdDeltree(const int lenArg, char *args[PHARAM_LEN]){
 	// Code
 	return 1;
