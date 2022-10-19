@@ -85,7 +85,7 @@ struct cmd_data cmd_table[] = {
 	{"create", cmdCreate},	/* cmdCreate */
 	{"stat", cmdStat},
 	{"list", NULL},		/* cmdList */
-	{"delete", NULL},	/* cmdDelete */
+	{"delete", cmdDelete},	/* cmdDelete */
 	{"deltree", NULL},	/* cmdDeltree */
 
 	{NULL, NULL}
@@ -477,8 +477,8 @@ int cmdCreate(const int lenArg, char *args[COMMAND_LEN]){
 	
 	}else {
 	
-	perror(error);
-	return -1;
+	cmdCarpeta(1,0);		// Muestra directorio actual
+	
 	}
 	
 	return 1;
@@ -566,10 +566,23 @@ int cmdList(const int lenArg, char *args[COMMAND_LEN]){
 	// Code
 	return 1;
 }
-int cmdDelete(const int lenArg, char *args[COMMAND_LEN]){
-	// Code
-	return 1;
+
+int cmdDelete(const int lenArg, char *args[COMMAND_LEN]) {
+    
+    if(lenArg >1){ 		//Borra el archivo o la carpeta
+        for(int i=1; i<lenArg; i++){
+            if(remove(args[i]) !=0){
+                printf("[!] Error al acceder a %s:No such file or directory\n",args[i]);
+                
+            }
+        }
+    }else { 			// Muestra directorio actual
+          cmdCarpeta(1,0);
+    }
+    return 1;
 }
+
+
 int cmdDeltree(const int lenArg, char *args[COMMAND_LEN]){
 	// Code
 	return 1;
