@@ -625,7 +625,7 @@ static void process_dir_data(const char *name, int recap, int recbp, int hidp, i
 		// Obtenemos los archivos del directorio
 		while((ent=readdir(dir))!=NULL){
 
-			// Parseando los directorios . y ..
+			// Parseando los directorios . y ..  por la recursividad
 			if(strcmp(ent->d_name, ".")==0 || strcmp(ent->d_name, "..")==0)
 				continue;
 
