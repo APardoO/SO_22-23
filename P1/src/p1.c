@@ -1,10 +1,8 @@
 /*	=========================================
 	Práctica 1 Sietemas Operativos 26/09/2022
-
 	Authors:
 		-> Adrián Pardo Martinez
 		-> Hugo Correa Blanco
-
 	Grupo: 2.1
 	========================================= */
 #include <pwd.h>					// Aporta la definicion de datos de la estructura passwd
@@ -23,6 +21,9 @@
 #include <fcntl.h>					// ?
 
 #include "List.h"					// Librería con las funcionalidades de la lista
+#include "List.c"
+#include <dirent.h>					// Libreria para directorios
+
 
 // Definiciones globales de la shell
 #define PHARAM_LEN		512			// Longitud de cada parametro
@@ -98,7 +99,7 @@ struct cmd_data cmd_table[] = {
 	{"stat", cmdStat},
 	{"list", cmdList},
 	{"delete", cmdDelete},
-	{"deltree", NULL},	/* cmdDeltree */
+	{"deltree", cmdDeltree},	
 
 	{NULL, NULL}
 };
@@ -514,6 +515,40 @@ int cmdCreate(const int lenArg, char *args[PHARAM_LEN]){
 	return 1;
 }
 
+int isDir(const char *path){
+    struct stat s;
+    stat(path, &s);
+    int out = S_ISDIR(s.st_mode);
+    return out;
+}
+
+
+
+int borrarDir(char *dir){  		//Borra el directorio
+    DIR *dirp;
+    struct dirent *flist;
+    char aux[MAX_NAME_LEN];
+
+    if((dirp=opendir(dir)) ==NULL)return -1;
+
+    while ((flist=readdir(dirp))!=NULL) { 	//Recorre el directorio
+        strcpy(aux, dir);
+        strcat(strcat(aux, "/"),flist->d_name);
+
+        if(strcmp(flist->d_name, "..") == 0 ||
+                strcmp(flist->d_name, ".") == 0)continue;
+
+        if(isDir(aux)){ 		//Recursivo
+            borrarDir(aux);
+        }
+        if(remove(aux))return -1; 	
+    }
+    closedir(dirp);
+
+    return 0;
+}
+
+
 // ====== POSIBLE CODIGO OFUSCADO ====== >> BUSCAR OPTIMIZACION DEL CÓDIGO
 // Fallo en el nombre del grupo propietario del archivo
 static void print_file_info(const char *name, const char *allPath, const struct stat *std, int longp, int accp, int linkp){	
@@ -698,7 +733,7 @@ int cmdList(const int lenArg, char *args[PHARAM_LEN]){
 	return 1;
 }
 
-int cmdDelete(const int lenArg, char *args[PHARAM_LEN]){
+int cmdDelete(const int lenArg, char *args[PHARAM_LEN]) {
     
     if(lenArg >1){ 		//Borra el archivo o la carpeta
         for(int i=1; i<lenArg; i++){
@@ -714,6 +749,20 @@ int cmdDelete(const int lenArg, char *args[PHARAM_LEN]){
 }
 
 int cmdDeltree(const int lenArg, char *args[PHARAM_LEN]){
-	// Code
+	
+	char error [MAX_NAME_LEN] = "[!] Error";
+
+    if(lenArg >1){
+        for(int i=1; i< lenArg; i++){
+            if(isDir(args[i]) ){
+                if(borrarDir(args[i])==-1 || remove(args[i]))
+                    perror(error);
+            }else if(remove(args[i])){
+                perror(error);
+            }
+        }
+    }else { 		//Muestra el directorio actual
+        cmdCarpeta(1,0);
+    }
 	return 1;
 }
