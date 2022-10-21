@@ -21,9 +21,6 @@
 #include <fcntl.h>					// ?
 
 #include "List.h"					// Librería con las funcionalidades de la lista
-#include "List.c"
-#include <dirent.h>					// Libreria para directorios
-
 
 // Definiciones globales de la shell
 #define PHARAM_LEN		512			// Longitud de cada parametro
@@ -37,7 +34,6 @@
 int argLen=0;						// Número de parametros del comadno introducido
 char *args[PHARAM_LEN];				// Parámetros del comando introducido
 char linea[COMMAND_BUFFER];			// String con el comando introducido
-char get_input[COMMAND_BUFFER];		// Obtiene la líne introducida por el usuario, se crea para splitearla por \n y que no se sobreescriba en la misma direccion de memoria
 List historicList;					// Lista del histórico de comandos
 
 // Métodos del sistema
@@ -47,7 +43,7 @@ void getCmdLine();
 int executeCommand(const int numTrozos, char *tokens[PHARAM_LEN]);
 void sighandler(int signum);
 
-// ===== Programas shell-in Build =====
+// ===== Programas propios de la shell =====
 // P0
 int cmdAutores(const int lenArg, char *args[PHARAM_LEN]);
 int cmdPid(const int lenArg, char *args[PHARAM_LEN]);
@@ -70,6 +66,7 @@ int cmdDeltree(const int lenArg, char *args[PHARAM_LEN]);
 static int currentDirectory();
 static char *currentDate();
 static char *currentHour();
+static int checkZeroPharam(char arg[PHARAM_LEN]);
 static void printNcommands(int n);
 // P1
 static void print_file_info(const char *name, const char *allPath, const struct stat *std, int longp, int accp, int linkp);
@@ -77,7 +74,7 @@ static void print_dir_data(const char *name, int hidp, int longp, int accp, int 
 static void process_dir_data(const char *name, int recap, int recbp, int hidp, int longp, int accp, int linkp);
 static void list_fd_data(const char *name, const struct stat *std, int recap, int recbp, int hidp, int longp, int accp, int linkp);
 
-// Tablas necesarias para la práctica
+// Tabla de programas de la shell
 struct cmd_data{
 	char *cmd_name;
 	int (*cmd_func)(const int argLen, char *args[PHARAM_LEN]);
@@ -131,21 +128,7 @@ struct cmd_help_data cmd_help[] = {
 	{NULL, NULL}
 };
 
-// Estructura del estado de parametros
-struct pharam_stat{
-	char *param;
-	int status;
-};
-
 // === DECLARACIONES PROPIAS DENTRO DE STRING.H ===
-/*char *strdup(const char *s) {
-    size_t size = strlen(s) + 1;
-    char *p = malloc(size);
-    if (p != NULL) {
-        memcpy(p, s, size);
-    }
-    return p;
-}*/
 char *strndup(const char *s, size_t n) {
     char *p;
     size_t n1;
@@ -185,7 +168,7 @@ int main(int argc, char const *argv[]){
 void printPrompt(){
 	printf("[#]~$ ");
 }
-// Sepra la línea en partes usando como delimitador los espacios(' '), saltos de línea('\n') y tabuladores('\t')
+// Sepra el comando introducido en parametros, usando como delimitador espacios, saltos de línea y tabuladores
 int TrocearCadena(char *line, char *tokens[]){
 	int i = 1;
 	if ((tokens[0]=strtok(line," \n\t"))==NULL)
@@ -194,8 +177,10 @@ int TrocearCadena(char *line, char *tokens[]){
 		i++;
 	return i;
 }
-// Línea donde el usuario introduce el comando, se guarda en el histórico y se comprueba si es válido
+// Línea donde el usuario introduce el comando, se comprueba su validez, se guarda en el histórico y se ejecuta
 void getCmdLine(){
+	char get_input[COMMAND_BUFFER];
+
 	// Comprobar que la lista está inicializada
 	if(historicList==NULL)
 		createList(&historicList);
@@ -213,14 +198,13 @@ void getCmdLine(){
 
 		// Insertar en la lista
 		if(insertElement(historicList, strndup(linea, COMMAND_BUFFER))==0)
-			printf("[!] Error: %s\n", strerror(12));
+			printf("[!] Error: %s\n", strerror(ENOMEM));
 
 		// Separar en trozos la cadena de texto introducida
 		argLen = TrocearCadena(linea, args);
 
 	// En caso de no ser válido, la línea se vacía y el número de argumentos se pone a 0
 	}else{
-		strcpy(get_input, " ");
 		strcpy(linea, " ");
 		argLen = 0;
 	}
@@ -229,10 +213,10 @@ void getCmdLine(){
 int executeCommand(const int numTrozos, char *tokens[PHARAM_LEN]){
 	register int i=0;
 
-	// Captador del salto de linea sin comando introducido
+	// Captador del salto de linea; sin comando introducido
 	if(argLen==0) return 1;
 
-	// Obtenemos la posicion en la tabla de comandos la posicion del comando a ejecutar
+	// Obtenemos la posicion en la tabla de comandos del comando a ejecutar
 	while (cmd_table[i].cmd_name != NULL && strcmp(cmd_table[i].cmd_name, tokens[0])!=0)
 		++i;
 
@@ -241,18 +225,19 @@ int executeCommand(const int numTrozos, char *tokens[PHARAM_LEN]){
 
 		// En caso de que no se haya implementado la funcion de dicho programa
 		if(cmd_table[i].cmd_func == NULL)
-			printf("[!] Error: %s\n", strerror(38));
+			printf("[!] Error: %s\n", strerror(ENOSYS));
 		
 		else
 			return cmd_table[i].cmd_func(numTrozos, tokens);
 
 	// En caso de que no se encuentre el comando en la lista
 	else
-		printf("[!] Error: %s\n", strerror(38));
+		printf("[!] Error: %s\n", strerror(ENOSYS));
 
 	return 1;
 }
 // Método que redirecciona la saliza forzosa del programa para liberar la memoria dinámica
+// guardada en el método en ejecución y del histórico
 void sighandler(int signum){
 	// Memoria reservada para el histórico
 	deleteList(historicList, free);
@@ -261,7 +246,7 @@ void sighandler(int signum){
 	exit(1);
 }
 
-// == PROGRAMAS SHELL-IN BUILD ==
+// == PROGRAMAS PROPIOS DE LA SHELL ==
 int cmdAutores(const int lenArg, char *args[PHARAM_LEN]){
 	if(lenArg==1){
 		printf("Adrian Pardo Martinez: adrian.pardo.martinez\n");
@@ -276,7 +261,7 @@ int cmdAutores(const int lenArg, char *args[PHARAM_LEN]){
 		printf("Adrian Pardo Martinez\nHugo Correa Blanco\n");
 	
 	else
-		printf("[!] Error: %s\n", strerror(22));
+		printf("[!] Error: %s\n", strerror(EINVAL));
 
 	return 1;
 }
@@ -289,14 +274,14 @@ int cmdPid(const int lenArg, char *args[PHARAM_LEN]){
 	if(strcmp(args[1], "-p")==0)
 		printf("Pid del padre del shell: %d\n", getpid());
 	else
-		printf("[!] Error: %s\n", strerror(22));
+		printf("[!] Error: %s\n", strerror(EINVAL));
 	
 	return 1;
 }
 static int currentDirectory(){
 	char path[COMMAND_BUFFER];
 	if(getcwd(path, COMMAND_BUFFER)==NULL)
-		printf("[!] Error: %s\n", strerror(20));
+		printf("[!] Error: %s\n", strerror(ENOTDIR));
 	else
 		printf("%s\n", path);
 	return 1;
@@ -306,7 +291,7 @@ int cmdCarpeta(const int lenArg, char *args[PHARAM_LEN]){
 		return currentDirectory();
 
 	if(chdir(args[1])!=0)
-		printf("[!] Error: %s\n", strerror(2));
+		printf("[!] Error: %s\n", strerror(ENOENT));
 	return 1;
 }
 static char *currentDate(){
@@ -336,16 +321,20 @@ int cmdFecha(const int lenArg, char *args[PHARAM_LEN]){
 	else if(strcmp("-h", args[1])==0)
 		printf("%s\n", currentHour());
 	else
-		printf("[!] Error: %s\n", strerror(22));
+		printf("[!] Error: %s\n", strerror(EINVAL));
 
 	return 1;
+}
+static int checkZeroPharam(char arg[PHARAM_LEN]){
+	int n=-1;
+	arg[0]='0';
+	return ((n=atoi(arg))<=0 && arg[1]!='0')? -1 : n;
 }
 static void printNcommands(int n){
 	Lpos auxPos;
 	register int iter=0;
 
-	// Buscar una forma de aliviar código
-	if(n>0){
+	if(n>=0){
 		for(auxPos=firstElement(historicList); auxPos!=NULL && iter<n; ++iter, auxPos=nextElement(historicList, auxPos))
 			printf("%d->%s\n", iter, (char *)getElement(historicList, auxPos));
 
@@ -365,18 +354,12 @@ int cmdHist(const int lenArg, char *args[PHARAM_LEN]){
 		return 1;
 	}
 
-	char *num;
-	int n=0;
-	if ((num=strtok(args[1],"-"))==NULL){
-		printf("[!] Error: %s\n", strerror(22));
-		return 1;
-	}
-
-	if((n=atoi(num))!=0)
-		printNcommands(n);
+	int n=checkZeroPharam(args[1]);
+	if(n<0)
+		printf("[!] Error: %s\n", strerror(EINVAL));
 	else
-		printf("[!] Error: %s\n", strerror(22));
-	
+		printNcommands(n);
+
 	return 1;
 }
 int cmdComando(const int lenArg, char *args[PHARAM_LEN]){
@@ -385,18 +368,17 @@ int cmdComando(const int lenArg, char *args[PHARAM_LEN]){
 	Lpos auxPos;
 	
 	if(lenArg>1){
-		args[1][0]='0';
-		nCommand=atoi(args[1]);
-		if(nCommand<=0 && args[1][1]!='0'){
-			printf("[!] Error: %s\n", strerror(22));
+		if((nCommand=checkZeroPharam(args[1]))<0){
+			printf("[!] Error: %s\n", strerror(EINVAL));
 			return 1;
 		}
 
+		// Se recorre la lista hasta que se llegue a la posición o al fnal de la lista
 		for(auxPos=firstElement(historicList); iter<nCommand && auxPos!=NULL; ++iter, auxPos=nextElement(historicList, auxPos));
 
 		// Comprobar la salida del bucle
 		if(auxPos==NULL){
-			printf("[!] Error: %s\n", strerror(95));
+			printf("[!] Error: %s\n", strerror(EOPNOTSUPP));
 			return 1;
 		}
 
@@ -414,7 +396,7 @@ int cmdComando(const int lenArg, char *args[PHARAM_LEN]){
 int cmdInfosys(const int lenArg, char *args[PHARAM_LEN]){
 	struct utsname systemData;
 	if(uname(&systemData)==-1)
-		printf("[!] Error: %s\n", strerror(61));
+		printf("[!] Error: %s\n", strerror(ENODATA));
 	else
 		printf("%s (%s), OS: %s-%s-%s\n", systemData.nodename, systemData.machine, systemData.sysname, systemData.release, systemData.version);
 
@@ -428,7 +410,7 @@ int cmdHelp(const int lenArg, char *args[PHARAM_LEN]){
 			++i;
 
 		if(cmd_help[i].cmd_name == NULL)
-			printf("[!] Error: %s\n", strerror(38));
+			printf("[!] Error: %s\n", strerror(ENOSYS));
 		else
 			printf("%s %s", cmd_help[i].cmd_name, cmd_help[i].cmd_usage);
 	}else{
@@ -514,16 +496,12 @@ int cmdCreate(const int lenArg, char *args[PHARAM_LEN]){
 
 	return 1;
 }
-
 int isDir(const char *path){
     struct stat s;
     stat(path, &s);
     int out = S_ISDIR(s.st_mode);
     return out;
 }
-
-
-
 int borrarDir(char *dir){  		//Borra el directorio
     DIR *dirp;
     struct dirent *flist;
@@ -548,8 +526,6 @@ int borrarDir(char *dir){  		//Borra el directorio
     return 0;
 }
 
-
-// ====== POSIBLE CODIGO OFUSCADO ====== >> BUSCAR OPTIMIZACION DEL CÓDIGO
 // Fallo en el nombre del grupo propietario del archivo
 static void print_file_info(const char *name, const char *allPath, const struct stat *std, int longp, int accp, int linkp){	
 	if(longp==1){
@@ -618,7 +594,6 @@ int cmdStat(const int lenArg, char *args[PHARAM_LEN]){
 
 	return 1;
 }
-
 static void print_dir_data(const char *name, int hidp, int longp, int accp, int linkp){
 	DIR *dir;
 	struct dirent *ent=NULL;
@@ -633,7 +608,7 @@ static void print_dir_data(const char *name, int hidp, int longp, int accp, int 
 		while((ent=readdir(dir))!=NULL){
 			sprintf(inn_name, "%s/%s", name, ent->d_name);
 
-			// -hid pasado como parametro
+			// [-hid] pasado como parametro
 			if(lstat(inn_name, &fStd)==0){
 				if(hidp==1)
 					print_file_info(ent->d_name, inn_name, &fStd, longp, accp, linkp);
@@ -678,14 +653,18 @@ static void process_dir_data(const char *name, int recap, int recbp, int hidp, i
 		printf("[!] Error: No se puede abrir el directorio\n");
 }
 static void list_fd_data(const char *name, const struct stat *std, int recap, int recbp, int hidp, int longp, int accp, int linkp){
-	if(recap==1){
-		print_dir_data(name, hidp, longp, accp, linkp);
-		process_dir_data(name, recap, recbp, hidp, longp, accp, linkp);
-
-	}else if(recbp==1){
+	// Se activa por defecto si -reca y -recb están activas a la vez
+	// se ejecuta recb
+	if(recbp==1){
 		process_dir_data(name, recap, recbp, hidp, longp, accp, linkp);
 		print_dir_data(name, hidp, longp, accp, linkp);
 
+	// Se ejecuta reca
+	}else if(recap==1){
+		print_dir_data(name, hidp, longp, accp, linkp);
+		process_dir_data(name, recap, recbp, hidp, longp, accp, linkp);
+
+	// Se muestra el contenido del directorio
 	}else
 		print_dir_data(name, hidp, longp, accp, linkp);
 }
@@ -747,7 +726,6 @@ int cmdDelete(const int lenArg, char *args[PHARAM_LEN]) {
     }
     return 1;
 }
-
 int cmdDeltree(const int lenArg, char *args[PHARAM_LEN]){
 	
 	char error [MAX_NAME_LEN] = "[!] Error";
