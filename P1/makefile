@@ -27,4 +27,4 @@ clean:
 	@rm -r $(OBJ_DIR) $(BIN_DIR) $(LAK_NAME)
 
 memcheck:
-	valgrind --tool=memcheck -s --leak-check=full --show-leak-kinds=all --log-file=$(LAK_NAME) ./$(TARGET)
+	valgrind --tool=memcheck -s --track-origins=yes --leak-check=full --show-leak-kinds=all --log-file=$(LAK_NAME) ./$(TARGET)
