@@ -128,21 +128,6 @@ struct cmd_help_data cmd_help[] = {
 	{NULL, NULL}
 };
 
-// === DECLARACIONES PROPIAS DENTRO DE STRING.H ===
-char *strndup(const char *s, size_t n) {
-    char *p;
-    size_t n1;
-
-    for (n1 = 0; n1 < n && s[n1] != '\0'; n1++)
-        continue;
-    p = malloc(n + 1);
-    if (p != NULL) {
-        memcpy(p, s, n1);
-        p[n1] = '\0';
-    }
-    return p;
-}
-
 /* == MAIN FUNCTION == */
 int main(int argc, char const *argv[]){
 	// Mandamos la señal para captar el trap del ctrl_c
@@ -236,8 +221,7 @@ int executeCommand(const int numTrozos, char *tokens[PHARAM_LEN]){
 
 	return 1;
 }
-// Método que redirecciona la saliza forzosa del programa para liberar la memoria dinámica
-// guardada en el método en ejecución y del histórico
+// Método que redirecciona la saliza forzosa del programa para liberar la memoria dinámica del histórico
 void sighandler(int signum){
 	// Memoria reservada para el histórico
 	deleteList(historicList, free);
@@ -526,7 +510,6 @@ int borrarDir(char *dir){  		//Borra el directorio
     return 0;
 }
 
-// Fallo en el nombre del grupo propietario del archivo
 static void print_file_info(const char *name, const char *allPath, const struct stat *std, int longp, int accp, int linkp){	
 	if(longp==1){
 		struct tm tl;
@@ -594,6 +577,7 @@ int cmdStat(const int lenArg, char *args[PHARAM_LEN]){
 
 	return 1;
 }
+
 static void print_dir_data(const char *name, int hidp, int longp, int accp, int linkp){
 	DIR *dir;
 	struct dirent *ent=NULL;
