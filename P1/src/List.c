@@ -23,6 +23,9 @@ struct lista{
 // Crea una lista vacía
 // En caso de que no se pueda reservar memoria, se devuelve NULL
 void createList(List *l){
+	if((*l)!=NULL)
+		return;
+	
 	*l = (struct lista *)malloc(sizeof(struct lista));
 
 	if(*l==NULL)
