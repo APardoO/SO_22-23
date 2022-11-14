@@ -281,6 +281,7 @@ int cmdAutores(const int lenArg, char *args[PHARAM_LEN]){
 
 	return 1;
 }
+
 int cmdPid(const int lenArg, char *args[PHARAM_LEN]){
 	if(lenArg==1){
 		printf("Pid de shell: %d\n", getppid());
@@ -294,6 +295,7 @@ int cmdPid(const int lenArg, char *args[PHARAM_LEN]){
 	
 	return 1;
 }
+
 static int currentDirectory(){
 	char path[COMMAND_BUFFER];
 	if(getcwd(path, COMMAND_BUFFER)==NULL)
@@ -310,6 +312,7 @@ int cmdCarpeta(const int lenArg, char *args[PHARAM_LEN]){
 		printf("[!] Error: %s\n", strerror(ENOENT));
 	return 1;
 }
+
 static char *currentDate(){
 	time_t crrent_time = time(NULL);
 	struct tm tiempoLocal = *localtime(&crrent_time);
@@ -341,6 +344,7 @@ int cmdFecha(const int lenArg, char *args[PHARAM_LEN]){
 
 	return 1;
 }
+
 static int checkZeroPharam(char arg[PHARAM_LEN]){
 	int n=-1;
 	arg[0]='0';
@@ -350,14 +354,13 @@ static void printNcommands(int n){
 	Lpos auxPos;
 	register int iter=0;
 
-	if(n>=0){
+	if(n>=0)
 		for(auxPos=firstElement(historicList); auxPos!=NULL && iter<n; ++iter, auxPos=nextElement(historicList, auxPos))
 			printf("%d->%s\n", iter, (char *)getElement(historicList, auxPos));
-
-	}else{
+	else
 		for(auxPos=firstElement(historicList); auxPos!=NULL; ++iter, auxPos=nextElement(historicList, auxPos))
 			printf("%d->%s\n", iter, (char *)getElement(historicList, auxPos));
-	}
+	
 }
 int cmdHist(const int lenArg, char *args[PHARAM_LEN]){
 	if(lenArg==1){
@@ -378,6 +381,7 @@ int cmdHist(const int lenArg, char *args[PHARAM_LEN]){
 
 	return 1;
 }
+
 int cmdComando(const int lenArg, char *args[PHARAM_LEN]){
 	register int iter=0;
 	int nCommand=0;
@@ -409,6 +413,7 @@ int cmdComando(const int lenArg, char *args[PHARAM_LEN]){
 	printNcommands(-1);
 	return 1;
 }
+
 int cmdInfosys(const int lenArg, char *args[PHARAM_LEN]){
 	struct utsname systemData;
 	if(uname(&systemData)==-1)
@@ -418,6 +423,7 @@ int cmdInfosys(const int lenArg, char *args[PHARAM_LEN]){
 
 	return 1;
 }
+
 int cmdHelp(const int lenArg, char *args[PHARAM_LEN]){
 	register int i=0;
 
@@ -439,6 +445,7 @@ int cmdHelp(const int lenArg, char *args[PHARAM_LEN]){
 
 	return 1;
 }
+
 int cmdExit(const int lenArg, char *args[PHARAM_LEN]){
 	return 0;
 }
@@ -457,6 +464,7 @@ char LetraTF(mode_t m){
 		default: return '?';	/*desconocido, no deberia aparecer*/
 	}
 }
+
 char * ConvierteModo2(mode_t m){
 	static char permisos[12];
 	strcpy (permisos,"---------- ");
@@ -512,12 +520,14 @@ int cmdCreate(const int lenArg, char *args[PHARAM_LEN]){
 
 	return 1;
 }
+
 int isDir(const char *path){
     struct stat s;
     stat(path, &s);
     int out = S_ISDIR(s.st_mode);
     return out;
 }
+
 int borrarDir(char *dir){  		//Borra el directorio
     DIR *dirp;
     struct dirent *flist;
@@ -742,6 +752,7 @@ int cmdDelete(const int lenArg, char *args[PHARAM_LEN]) {
     }
     return 1;
 }
+
 int cmdDeltree(const int lenArg, char *args[PHARAM_LEN]){
 	
 	char error [MAX_NAME_LEN] = "[!] Error";
@@ -760,3 +771,5 @@ int cmdDeltree(const int lenArg, char *args[PHARAM_LEN]){
     }
 	return 1;
 }
+
+// ==================== PRÁCTICA 2 ====================
