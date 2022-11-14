@@ -60,6 +60,14 @@ int cmdStat(const int lenArg, char *args[PHARAM_LEN]);
 int cmdList(const int lenArg, char *args[PHARAM_LEN]);
 int cmdDelete(const int lenArg, char *args[PHARAM_LEN]);
 int cmdDeltree(const int lenArg, char *args[PHARAM_LEN]);
+// P2
+int cmdAllocate(const int lenArg, char *args[PHARAM_LEN]);
+int cmdDeallocate(const int lenArg, char *args[PHARAM_LEN]);
+int cmdIo(const int lenArg, char *args[PHARAM_LEN]);
+int cmdMemdump(const int lenArg, char *args[PHARAM_LEN]);
+int cmdMemfill(const int lenArg, char *args[PHARAM_LEN]);
+int cmdMemory(const int lenArg, char *args[PHARAM_LEN]);
+int cmdRecurse(const int lenArg, char *args[PHARAM_LEN]);
 
 // ===== Métodos estáticos de la shell =====
 // P0
@@ -73,6 +81,8 @@ static void print_file_info(const char *name, const char *allPath, const struct 
 static void print_dir_data(const char *name, int hidp, int longp, int accp, int linkp);
 static void process_dir_data(const char *name, int recap, int recbp, int hidp, int longp, int accp, int linkp);
 static void list_fd_data(const char *name, const struct stat *std, int recap, int recbp, int hidp, int longp, int accp, int linkp);
+// P2
+
 
 // Tabla de programas de la shell
 struct cmd_data{
@@ -80,6 +90,7 @@ struct cmd_data{
 	int (*cmd_func)(const int argLen, char *args[PHARAM_LEN]);
 };
 struct cmd_data cmd_table[] = {
+	// P0
 	{"autores", cmdAutores},
 	{"pid", cmdPid},
 	{"carpeta", cmdCarpeta},
@@ -92,11 +103,21 @@ struct cmd_data cmd_table[] = {
 	{"salir", cmdExit},
 	{"bye", cmdExit},
 
+	// P1
 	{"create", cmdCreate},
 	{"stat", cmdStat},
 	{"list", cmdList},
 	{"delete", cmdDelete},
-	{"deltree", cmdDeltree},	
+	{"deltree", cmdDeltree},
+
+	// P2
+	{"allocate", NULL},
+	{"deallocate", NULL},
+	{"i-o", NULL},
+	{"memdump", NULL},
+	{"memfill", NULL},
+	{"memory", NULL},
+	{"recurse", NULL},
 
 	{NULL, NULL}
 };
@@ -107,6 +128,7 @@ struct cmd_help_data{
 	char *cmd_usage;
 };
 struct cmd_help_data cmd_help[] = {
+	// P0
 	{"autores", "[-n|-l]\tMuestra los nombres y logins de los autores\n"},
 	{"pid", "[-p]\tMuestra el pid del shell o de su proceso padre\n"},
 	{"carpeta", "[dir]\tCambia (o muestra) el directorio actual del shell\n"},
@@ -119,12 +141,22 @@ struct cmd_help_data cmd_help[] = {
 	{"salir", "\tTermina la ejecucion del shell\n"},
 	{"bye", "\tTermina la ejecucion del shell\n"},
 
+	// P1
 	{"create", "[-f] [name]\tCrea un directorio o un fichero (-f)\n"},
 	{"stat", "[-long][-link][-acc] name1 name2 .. \tlista ficheros;\n\t\t-long: listado largo\n\t\t-acc: acesstime\n\t\t-link: si es enlace simbolico, el path contenido\n"},
 	{"list", "[-reca] [-recb] [-hid][-long][-link][-acc] n1 n2 .. \tlista contenidos de directorios\n\t\t-hid: incluye los ficheros ocultos\n\t\t-reca: recursivo (antes)\n\t\t-recb: recursivo (despues)\n\t\tresto parametros como stat\n"},
 	{"delete", "[name1 name2 ..]\tBorra ficheros o directorios vacios\n"},
 	{"deltree", "[name1 name2 ..]\tBorra ficheros o directorios no vacios recursivamente\n"},
 	
+	// P2
+	{"allocate", "[-malloc|-shared|-createshared|-mmap]... Asigna un bloque de memoria\n\t-malloc tam: asigna un bloque malloc de tamano tam\n\t-createshared cl tam: asigna (creando) el bloque de memoria compartida de clave cl y tamano tam\n\t-shared cl: asigna el bloque de memoria compartida (ya existente) de clave cl\n\t-mmap fich perm: mapea el fichero fich, perm son los permisos\n"},
+	{"deallocate", "[-malloc|-shared|-delkey|-mmap|addr]..\tDesasigna un bloque de memoria\n\t-malloc tam: desasigna el bloque malloc de tamano tam\n\t-shared cl: desasigna (desmapea) el bloque de memoria compartida de clave cl\n\t-delkey cl: elimina del sistema (sin desmapear) la clave de memoria cl\n\t-mmap fich: desmapea el fichero mapeado fich\n\taddr: desasigna el bloque de memoria en la direccion addr\n"},
+	{"i-o", "[read|write] [-o] fiche addr cont\n\tread fich addr cont: Lee cont bytes desde fich a addr\n\twrite [-o] fich addr cont: Escribe cont bytes desde addr a fich. -o para sobreescribir\n\t\taddr es una direccion de memoria\n"},
+	{"memdump", "addr cont\tVuelca en pantallas los contenidos (cont bytes) de la posicion de memoria addr\n"},
+	{"memfill", "addr cont byte\tLlena la memoria a partir de addr con byte\n"},
+	{"memory", "[-blocks|-funcs|-vars|-all|-pmap] ..\tMuestra muestra detalles de la memoria del proceso\n\t\t-blocks: los bloques de memoria asignados\n\t\t-funcs: las direcciones de las funciones\n\t\t-vars: las direcciones de las variables\n\t\t:-all: todo\n\t\t-pmap: muestra la salida del comando pmap(o similar)\n"},
+	{"recurse", "[n]\tInvoca a la funcion recursiva n veces\n"},
+
 	{NULL, NULL}
 };
 
