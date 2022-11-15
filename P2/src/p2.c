@@ -29,6 +29,7 @@
 #define MAX_NAME_LEN	70			// Longitud máxima para nombres auxiliares del programa 'char[]'
 #define MAX_DATE_SIZE	12			// Longitud de la cadena de texto para la fecha actual
 #define MAX_HOUR_SIZE	10			// Longitud de la cadena de texto para la hora actual
+#define TAMANO 			2048		// ? <- P2
 
 // Definiciones globales
 int argLen=0;						// Número de parametros del comadno introducido
@@ -117,7 +118,7 @@ struct cmd_data cmd_table[] = {
 	{"memdump", NULL},
 	{"memfill", NULL},
 	{"memory", NULL},
-	{"recurse", NULL},
+	{"recurse", cmdRecurse},	// Done
 
 	{NULL, NULL}
 };
@@ -129,10 +130,10 @@ struct cmd_help_data{
 };
 struct cmd_help_data cmd_help[] = {
 	// P0
-	{"autores", "[-n|-l]\tMuestra los nombres y logins de los autores\n"},
+	{"autores", "[-n|-l]\tMuestra los nombres y/o logins de los autores\n"},
 	{"pid", "[-p]\tMuestra el pid del shell o de su proceso padre\n"},
 	{"carpeta", "[dir]\tCambia (o muestra) el directorio actual del shell\n"},
-	{"fecha", "[-d|-h]\tMuestra la fecha y o la hora actual\n"},
+	{"fecha", "[-d|-h]\tMuestra la fecha y/o la hora actual\n"},
 	{"hist", "[-c|-N]\tMuestra el historico de comandos, con -c lo borra\n"},
 	{"comando", "[-N]\tRepite el comando N (del historico)\n"},
 	{"infosis", "\tMuestra informacion de la maquina donde corre el shell\n"},
@@ -151,9 +152,9 @@ struct cmd_help_data cmd_help[] = {
 	// P2
 	{"allocate", "[-malloc|-shared|-createshared|-mmap]... Asigna un bloque de memoria\n\t-malloc tam: asigna un bloque malloc de tamano tam\n\t-createshared cl tam: asigna (creando) el bloque de memoria compartida de clave cl y tamano tam\n\t-shared cl: asigna el bloque de memoria compartida (ya existente) de clave cl\n\t-mmap fich perm: mapea el fichero fich, perm son los permisos\n"},
 	{"deallocate", "[-malloc|-shared|-delkey|-mmap|addr]..\tDesasigna un bloque de memoria\n\t-malloc tam: desasigna el bloque malloc de tamano tam\n\t-shared cl: desasigna (desmapea) el bloque de memoria compartida de clave cl\n\t-delkey cl: elimina del sistema (sin desmapear) la clave de memoria cl\n\t-mmap fich: desmapea el fichero mapeado fich\n\taddr: desasigna el bloque de memoria en la direccion addr\n"},
-	{"i-o", "[read|write] [-o] fiche addr cont\n\tread fich addr cont: Lee cont bytes desde fich a addr\n\twrite [-o] fich addr cont: Escribe cont bytes desde addr a fich. -o para sobreescribir\n\t\taddr es una direccion de memoria\n"},
+	{"i-o", "[read|write] [-o] fiche addr cont \n\tread fich addr cont: Lee cont bytes desde fich a addr\n\twrite [-o] fich addr cont: Escribe cont bytes desde addr a fich. -o para sobreescribir\n\t\taddr es una direccion de memoria\n"},
 	{"memdump", "addr cont\tVuelca en pantallas los contenidos (cont bytes) de la posicion de memoria addr\n"},
-	{"memfill", "addr cont byte\tLlena la memoria a partir de addr con byte\n"},
+	{"memfill", "addr cont byte\t\tLlena la memoria a partir de addr con byte\n"},
 	{"memory", "[-blocks|-funcs|-vars|-all|-pmap] ..\tMuestra muestra detalles de la memoria del proceso\n\t\t-blocks: los bloques de memoria asignados\n\t\t-funcs: las direcciones de las funciones\n\t\t-vars: las direcciones de las variables\n\t\t:-all: todo\n\t\t-pmap: muestra la salida del comando pmap(o similar)\n"},
 	{"recurse", "[n]\tInvoca a la funcion recursiva n veces\n"},
 
@@ -183,7 +184,8 @@ int main(int argc, char const *argv[]){
 // == SYSTEM METHODS ==
 // Imprime por pantalla el propmt del usuario
 void printPrompt(){
-	printf("[#]~$ ");
+	//printf("[#]~$ ");
+	printf("-> ");
 }
 // Sepra el comando introducido en parametros, usando como delimitador espacios, saltos de línea y tabuladores
 int TrocearCadena(char *line, char *tokens[]){
@@ -773,3 +775,48 @@ int cmdDeltree(const int lenArg, char *args[PHARAM_LEN]){
 }
 
 // ==================== PRÁCTICA 2 ====================
+
+int cmdAllocate(const int lenArg, char *args[PHARAM_LEN]){
+	// Code
+	return 1;
+}
+
+int cmdDeallocate(const int lenArg, char *args[PHARAM_LEN]){
+	// Code
+	return 1;
+}
+
+int cmdIo(const int lenArg, char *args[PHARAM_LEN]){
+	// Code
+	return 1;
+}
+
+int cmdMemdump(const int lenArg, char *args[PHARAM_LEN]){
+	// Cdde
+	return 1;
+}
+
+int cmdMemfill(const int lenArg, char *args[PHARAM_LEN]){
+	// Code
+	return 1;
+}
+
+int cmdMemory(const int lenArg, char *args[PHARAM_LEN]){
+	// Code
+	return 1;
+}
+
+static void Recursiva(int n){
+	char automatico[TAMANO];
+	static char estatico[TAMANO];
+
+	printf("parametro:%3d(%p) array %p, arr estatico %p\n", n, (void *)&n, automatico, estatico);
+
+	if(n>0)
+		Recursiva(n-1);
+}
+int cmdRecurse(const int lenArg, char *args[PHARAM_LEN]){
+	if(lenArg==1) return 1;
+	Recursiva(atoi(args[1]));
+	return 1;
+}
