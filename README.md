@@ -386,10 +386,10 @@ La función `recurse` tiene una array estático y dinámico del mismo tamaño (2
 
 ### Commands
 
-| Command      | Paramether                        | Description                                                                                          |
-| :----------- | :-------------------------------- | :--------------------------------------------------------------------------------------------------- |
-| `allocate`   |                                   | Reserva un bloque de memoria                                                                         |
-|              | `-malloc` `tam`                   | Asigna un bloque malloc de tamano `tam`                                                              |
+| Command      | Paramether                        | Description                                                                                              |
+| :----------- | :-------------------------------- | :------------------------------------------------------------------------------------------------------- |
+| `allocate`   |                                   | Reserva un bloque de memoria                                                                             |
+|              | `-malloc` `tam`                   | Asigna un bloque malloc de tamano `tam`, en caso de no declarar `tam` se muestra la lista, de los malloc |
 |              | `-createshared` `cl` `tam`        | Asigna (creando) el bloque de memoria compartida de clave `cl` y tamano `tam`                        |
 |              | `-shared` `cl`                    | Asigna el bloque de memoria compartida (ya existente) de clave `cl`                                  |
 |              | `-mmap` `fich` `perm`             | Mapea el fichero `fich`, `perm` son los permisos                                                     |
@@ -401,7 +401,7 @@ La función `recurse` tiene una array estático y dinámico del mismo tamaño (2
 |              | `addr`                            | Desasigna el bloque de memoria en la direccion `addr`                                                |
 | `i-o`        |                                   | Realiza entrada y salida desde disco y viceversa                                                     |
 |              | `read` `fich` `addr` `cont`       | Lee `cont` bytes desde `fich` a `addr`                                                               |
-|              | `write` [-o] `fich` `addr` `cont` | Escribe `cont` bytes desde `addr` a fich. [-o para sobreescribir] (addr es una direccion de memoria) |
+|              | `write` [-o] `fich` `addr` `cont` | Escribe `cont` bytes desde `addr` a fich. *[-o para sobreescribir]* (addr es una direccion de memoria) |
 | `memdump`    | `addr` `cont`                     | Vuelca en pantallas los contenidos (`cont` bytes) de la posicion de memoria `addr`                   |
 | `memfill`    | `addr` `cont` `byte`              | Llena la memoria a partir de `addr` con `byte`                                                       |
 | `memory`     |                                   | Muestra detalles de la memoria del proceso                                                           |
