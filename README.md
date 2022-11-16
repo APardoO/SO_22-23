@@ -346,7 +346,7 @@ char * ConvierteModo3(mode_t m){
 
 ```
 
-Estructura de datos del tipo stat(`struct stat`), necesaria para comprender la práctica:
+Estructura de datos del tipo stat, necesaria para comprender la práctica:
 ```c
 struct stat {
     dev_t     st_dev;     // ID of device containing file
@@ -377,8 +377,8 @@ Para esta práctica, debemos implementar una lista (misma implementación que la
 Los comandos `allocate` y `deallocate`, asignan y desasignan bloques de memoria y agregar (o eliminarlos) de la lsita. Usaremos `allocate -malloc` y `deallocate -malloc` para manejar la memoria malloc, `allocate -shared` y `deallocate -shared` para manejar la memoria compartida y así sucesivamente.
 
 >Tipos diferentes de memoria:
-* **malloc memory.** Esta es la memoria más común que usamos, la asignamos con la función `malloc()` y la desasignamos con la función `free()`
-* **shared memory.** Esta es una memoria que se puede compartir entre varios procesos. La memoria se identifica con un número (llamado clave) para que dos procesos que usen la misma clave lleguen al mismo bloque de memoria. Usamos la llamada al sistema `shmget()` para obtener la memoria y `shmat()` y `shmdt()` para colocarla (o separarla) del espacio de direcciones del proceso. *shmget()* necesita la clave, el tamaño y las banderas. Usaremos `flags=IPC_CREAT | IPC_EXCL| permisions` para crear uno nuevo (da error si ya existe) y `flags=permisions` para usar uno ya creado. Para eliminar una clave, usaremos el comando **deallocate -delkey**. El estado de la memoria compartida en el sistema se puede verificar a través de la línea de comando con el comando ipc (el código de ejemplo se puede encontrar más abajo).
+* **malloc memory.** Esta es la memoria más común que usamos, la asignamos con la función *malloc()* y la desasignamos con la función *free()*.
+* **shared memory.** Esta es una memoria que se puede compartir entre varios procesos. La memoria se identifica con un número (llamado clave) para que dos procesos que usen la misma clave lleguen al mismo bloque de memoria. Usamos la llamada al sistema *shmget()* para obtener la memoria y *shmat()* y *shmdt()* para colocarla (o separarla) del espacio de direcciones del proceso. *shmget()* necesita la clave, el tamaño y las banderas. Usaremos `flags=IPC_CREAT | IPC_EXCL| permisions` para crear uno nuevo (da error si ya existe) y `flags=permisions` para usar uno ya creado. Para eliminar una clave, usaremos el comando `deallocate -delkey`. El estado de la memoria compartida en el sistema se puede verificar a través de la línea de comando con el comando ipc (el código de ejemplo se puede encontrar más abajo).
 * **mapped files.** Podemos mapear archivos en memoria para que aparezcan en el espacio de direcciones de un proceso. Las llamadas al sistema mmap y munmap lo hacen posible (hay códigos de ejemplo más abajo).
 
 El contenido de la lista debe ser compatible con lo que muestra el sistema al usar el comando `pmap`.
