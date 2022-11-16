@@ -36,7 +36,7 @@ A partir de la práctica 2, se puede hacer un comprobante entre comandos introdu
 make check
 ```
 
-## Practica 0
+## Lab Assignment 0
 
 En esta práctica, se tomará contacto con el lenguaje C. Crearemos una shell interactiva, se añadirán comandos en las próximas prácticas o versiones de la shell. Nuestra shell se basará en cinco fases:
 
@@ -46,7 +46,7 @@ En esta práctica, se tomará contacto con el lenguaje C. Crearemos una shell in
 * Separar el comando en argumentos
 * Procesar el comadno con sus argumentos
 
-### Comandos
+### Commands
 
 | Command   | Paramether | Description                                                         |
 | :-------- | :--------- | :------------------------------------------------------------------ |
@@ -96,7 +96,7 @@ int TrocearCadena(char * cadena, char * trozos[]){
 }
 ```
 
-### Códigos de C en Linux
+### C Linux explain failure codes
 
 ```c
 #define EPERM           1   /* Operation not permitted */
@@ -239,7 +239,7 @@ int TrocearCadena(char * cadena, char * trozos[]){
 
 ```
 
-## Practica 1
+## Lab Assignment 1
 
 Cuando una salida del programa ejecutado no es satisfacctoria, se devuelve un código esoecial (generalmente -1) que se almacenará en una variable global del sistema `errno` para códigos de error. `man` proporciona información de por qué se devuelve dicho código de error.
 
@@ -247,7 +247,7 @@ Cuando una salida del programa ejecutado no es satisfacctoria, se devuelve un c�
 * **strerror()**: Retorna un puntero con la cadena de texto con el mensaje de error relacionado a un código pasado por parámetro.
 * **extern char * sys_errlist[]**: Matriz que contiene la descripción de error indexada por número de error para que `sys_errlist[errno]` tenga una descripción del error asociado con errno.
 
-### Comandos
+### Commands
 
 | Command   | Paramether            | Description                                                 |
 | :-------- | :-------------------- | :---------------------------------------------------------- |
@@ -268,7 +268,6 @@ Cuando una salida del programa ejecutado no es satisfacctoria, se devuelve un c�
 Para poder desenvolver la práctica podemos tomar una idea de los siguientes códigos para la práctica, tomadas de prácticas anteriores:
 
 Para capturar los el tipo de archivo:
-
 ```c
 char LetraTF(mode_t m){
 	switch (m&S_IFMT){	/*and bit a bit con los bits de formato,0170000 */
@@ -285,7 +284,6 @@ char LetraTF(mode_t m){
 ```
 
 Obtención de permisos por el primer método:
-
 ```c
 char * ConvierteModo(mode_t m, char *permisos){
 	strcpy (permisos,"---------- ");
@@ -307,7 +305,6 @@ char * ConvierteModo(mode_t m, char *permisos){
 ```
 
 Obtención de permisos por el segundo método:
-
 ```c
 char * ConvierteModo2(mode_t m){
 	static char permisos[12];
@@ -331,7 +328,6 @@ char * ConvierteModo2(mode_t m){
 ```
 
 Obtención de permisos por el tercer método:
-
 ```c
 char * ConvierteModo3(mode_t m){
 	char * permisos;
@@ -357,7 +353,6 @@ char * ConvierteModo3(mode_t m){
 ```
 
 Estructura de datos del tipo stat(`struct stat`), necesaria para comprender la práctica:
-
 ```c
 struct stat {
     dev_t     st_dev;     // ID of device containing file
@@ -376,10 +371,26 @@ struct stat {
 };
 ```
 
+## Lab Assignment 2
 
-## Practica 2
+Para esta práctica, debemos implementar una lista (misma implementación que la usada hasta ahora) para una lista de bloques de memoria. Para cada bloque debemos almacenar los siguientes datos:
+* **Su dirección de memoria.**
+* **Su tamaño.**
+* **Tiempo de asignación.**
+* **Tipo de asignación.** Memoria malloc, memoria compartida, archivo mapeado).
+* **Otra información**. Clave para bloques de memoria compartida, nombre de archivo y descriptor de archivo para archivos asignados.
 
-### Comandos
+Los comandos `allocate` y `deallocate`, asignan y desasignan bloques de memoria y agregar (o eliminarlos) de la lsita. Usaremos `allocate -malloc` y `deallocate -malloc` para manejar la memoria malloc, `allocate -shared` y `deallocate -shared` para manejar la memoria compartida y así sucesivamente.
+
+>Tipos diferentes de memoria:
+* **malloc memory.** Esta es la memoria más común que usamos, la asignamos con la función `malloc()` y la desasignamos con la función `free()`
+* **shared memory.** Esta es una memoria que se puede compartir entre varios procesos. La memoria se identifica con un número (llamado clave) para que dos procesos que usen la misma clave lleguen al mismo bloque de memoria. Usamos la llamada al sistema `shmget()` para obtener la memoria y `shmat()` y `shmdt()` para colocarla (o separarla) del espacio de direcciones del proceso. *shmget()* necesita la clave, el tamaño y las banderas. Usaremos `flags=IPC_CREAT | IPC_EXCL| permisions` para crear uno nuevo (da error si ya existe) y `flags=permisions` para usar uno ya creado. Para eliminar una clave, usaremos el comando **deallocate -delkey**. El estado de la memoria compartida en el sistema se puede verificar a través de la línea de comando con el comando ipc (el código de ejemplo se puede encontrar más abajo).
+* **mapped files.** Podemos mapear archivos en memoria para que aparezcan en el espacio de direcciones de un proceso. Las llamadas al sistema mmap y munmap lo hacen posible (hay códigos de ejemplo más abajo).
+
+El contenido de la lista debe ser compatible con lo que muestra el sistema al usar el comando `pmap`.
+La función `recurse` tiene una array estático y dinámico del mismo tamaño (2048 bytes) e imprime sus direcciones junto con su valor y dirección.
+
+### Commands
 
 | Command      | Paramether                        | Description                                                                                          |
 | :----------- | :-------------------------------- | :--------------------------------------------------------------------------------------------------- |
