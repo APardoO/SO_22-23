@@ -113,7 +113,7 @@ struct cmd_data cmd_table[] = {
 	{"deltree", cmdDeltree},
 
 	// P2
-	{"allocate", cmdAllocate},
+	{"allocate", cmdAllocate},	// Pardo
 	{"deallocate", NULL},
 	{"i-o", NULL},
 	{"memdump", NULL},
@@ -127,37 +127,38 @@ struct cmd_data cmd_table[] = {
 // Tabla para la ayuda de los comandos
 struct cmd_help_data{
 	char *cmd_name;
+	char *cmd_pharams;
 	char *cmd_usage;
 };
 struct cmd_help_data cmd_help[] = {
 	// P0
-	{"autores", "[-n|-l]\tMuestra los nombres y/o logins de los autores\n"},
-	{"pid", "[-p]\tMuestra el pid del shell o de su proceso padre\n"},
-	{"carpeta", "[dir]\tCambia (o muestra) el directorio actual del shell\n"},
-	{"fecha", "[-d|-h]\tMuestra la fecha y/o la hora actual\n"},
-	{"hist", "[-c|-N]\tMuestra el historico de comandos, con -c lo borra\n"},
-	{"comando", "[-N]\tRepite el comando N (del historico)\n"},
-	{"infosis", "\tMuestra informacion de la maquina donde corre el shell\n"},
-	{"ayuda", "[cmd]\tMuestra ayuda sobre los comandos\n"},
-	{"fin", "\tTermina la ejecucion del shell\n"},
-	{"salir", "\tTermina la ejecucion del shell\n"},
-	{"bye", "\tTermina la ejecucion del shell\n"},
+	{"autores", "[-n|-l]", "\tMuestra los nombres y/o logins de los autores\n"},
+	{"pid", "[-p]", "\tMuestra el pid del shell o de su proceso padre\n"},
+	{"carpeta", "[dir]", "\tCambia (o muestra) el directorio actual del shell\n"},
+	{"fecha", "[-d|-h]", "\tMuestra la fecha y/o la hora actual\n"},
+	{"hist", "[-c|-N]", "\tMuestra el historico de comandos, con -c lo borra\n"},
+	{"comando", "[-N]", "\tRepite el comando N (del historico)\n"},
+	{"infosis", NULL, "\tMuestra informacion de la maquina donde corre el shell\n"},
+	{"ayuda", "[cmd]", "\tMuestra ayuda sobre los comandos\n"},
+	{"fin", NULL, "\tTermina la ejecucion del shell\n"},
+	{"salir", NULL, "\tTermina la ejecucion del shell\n"},
+	{"bye", NULL, "\tTermina la ejecucion del shell\n"},
 
 	// P1
-	{"create", "[-f] [name]\tCrea un directorio o un fichero (-f)\n"},
-	{"stat", "[-long][-link][-acc] name1 name2 .. \tlista ficheros;\n\t\t-long: listado largo\n\t\t-acc: acesstime\n\t\t-link: si es enlace simbolico, el path contenido\n"},
-	{"list", "[-reca] [-recb] [-hid][-long][-link][-acc] n1 n2 .. \tlista contenidos de directorios\n\t\t-hid: incluye los ficheros ocultos\n\t\t-reca: recursivo (antes)\n\t\t-recb: recursivo (despues)\n\t\tresto parametros como stat\n"},
-	{"delete", "[name1 name2 ..]\tBorra ficheros o directorios vacios\n"},
-	{"deltree", "[name1 name2 ..]\tBorra ficheros o directorios no vacios recursivamente\n"},
+	{"create", "[-f] [name]", "\tCrea un directorio o un fichero (-f)\n"},
+	{"stat", "[-long][-link][-acc] name1 name2", " ..\tlista ficheros;\n\t-long: listado largo\n\t-acc: acesstime\n\t-link: si es enlace simbolico, el path contenido\n"},
+	{"list", "[-reca] [-recb] [-hid][-long][-link][-acc] n1 n2", " ..\tlista contenidos de directorios\n\t-hid: incluye los ficheros ocultos\n\t-recb: recursivo (antes)\n\t-reca: recursivo (despues)\n\tresto parametros como stat\n"},
+	{"delete", "[name1 name2 ..]", "\tBorra ficheros o directorios vacios\n"},
+	{"deltree", "[name1 name2 ..]", "\tBorra ficheros o directorios no vacios recursivamente\n"},
 	
 	// P2
-	{"allocate", "[-malloc|-shared|-createshared|-mmap]... Asigna un bloque de memoria\n\t-malloc tam: asigna un bloque malloc de tamano tam\n\t-createshared cl tam: asigna (creando) el bloque de memoria compartida de clave cl y tamano tam\n\t-shared cl: asigna el bloque de memoria compartida (ya existente) de clave cl\n\t-mmap fich perm: mapea el fichero fich, perm son los permisos\n"},
-	{"deallocate", "[-malloc|-shared|-delkey|-mmap|addr]..\tDesasigna un bloque de memoria\n\t-malloc tam: desasigna el bloque malloc de tamano tam\n\t-shared cl: desasigna (desmapea) el bloque de memoria compartida de clave cl\n\t-delkey cl: elimina del sistema (sin desmapear) la clave de memoria cl\n\t-mmap fich: desmapea el fichero mapeado fich\n\taddr: desasigna el bloque de memoria en la direccion addr\n"},
-	{"i-o", "[read|write] [-o] fiche addr cont \n\tread fich addr cont: Lee cont bytes desde fich a addr\n\twrite [-o] fich addr cont: Escribe cont bytes desde addr a fich. -o para sobreescribir\n\t\taddr es una direccion de memoria\n"},
-	{"memdump", "addr cont\tVuelca en pantallas los contenidos (cont bytes) de la posicion de memoria addr\n"},
-	{"memfill", "addr cont byte\t\tLlena la memoria a partir de addr con byte\n"},
-	{"memory", "[-blocks|-funcs|-vars|-all|-pmap] ..\tMuestra muestra detalles de la memoria del proceso\n\t\t-blocks: los bloques de memoria asignados\n\t\t-funcs: las direcciones de las funciones\n\t\t-vars: las direcciones de las variables\n\t\t:-all: todo\n\t\t-pmap: muestra la salida del comando pmap(o similar)\n"},
-	{"recurse", "[n]\tInvoca a la funcion recursiva n veces\n"},
+	{"allocate", "[-malloc|-shared|-createshared|-mmap]", "... Asigna un bloque de memoria\n\t-malloc tam: asigna un bloque malloc de tamano tam\n\t-createshared cl tam: asigna (creando) el bloque de memoria compartida de clave cl y tamano tam\n\t-shared cl: asigna el bloque de memoria compartida (ya existente) de clave cl\n\t-mmap fich perm: mapea el fichero fich, perm son los permisos\n"},
+	{"deallocate", "[-malloc|-shared|-delkey|-mmap|addr]", "..\tDesasigna un bloque de memoria\n\t-malloc tam: desasigna el bloque malloc de tamano tam\n\t-shared cl: desasigna (desmapea) el bloque de memoria compartida de clave cl\n\t-delkey cl: elimina del sistema (sin desmapear) la clave de memoria cl\n\t-mmap fich: desmapea el fichero mapeado fich\n\taddr: desasigna el bloque de memoria en la direccion addr\n"},
+	{"i-o", "[read|write] [-o] fiche addr cont", " \n\tread fich addr cont: Lee cont bytes desde fich a addr\n\twrite [-o] fich addr cont: Escribe cont bytes desde addr a fich. -o para sobreescribir\n\t\taddr es una direccion de memoria\n"},
+	{"memdump", "addr cont", " \tVuelca en pantallas los contenidos (cont bytes) de la posicion de memoria addr\n"},
+	{"memfill", "addr cont byte", " \tLlena la memoria a partir de addr con byte\n"},
+	{"memory", "[-blocks|-funcs|-vars|-all|-pmap]", " ..\tMuestra muestra detalles de la memoria del proceso\n\t\t-blocks: los bloques de memoria asignados\n\t\t-funcs: las direcciones de las funciones\n\t\t-vars: las direcciones de las variables\n\t\t:-all: todo\n\t\t-pmap: muestra la salida del comando pmap(o similar)\n"},
+	{"recurse", "[n]", "\tInvoca a la funcion recursiva n veces\n"},
 
 	{NULL, NULL}
 };
@@ -202,8 +203,8 @@ int main(int argc, char const *argv[]){
 // == SYSTEM METHODS ==
 // Imprime por pantalla el propmt del usuario
 void printPrompt(){
-	printf("[#]~$ ");
-	//printf("-> ");
+	//printf("[#]~$ ");
+	printf("-> ");
 }
 // Sepra el comando introducido en parametros, usando como delimitador espacios, saltos de línea y tabuladores
 int TrocearCadena(char *line, char *tokens[]){
@@ -463,7 +464,7 @@ int cmdHelp(const int lenArg, char *args[PHARAM_LEN]){
 		if(cmd_help[i].cmd_name == NULL)
 			printf("[!] Error: %s\n", strerror(ENOSYS));
 		else
-			printf("%s %s", cmd_help[i].cmd_name, cmd_help[i].cmd_usage);
+			printf("%s %s%s", cmd_help[i].cmd_name, cmd_help[i].cmd_pharams!=NULL? cmd_help[i].cmd_pharams : "", cmd_help[i].cmd_usage);
 	}else{
 		printf("'ayuda cmd' donde cmd es uno de los siguientes comandos:\n");
 		for(i=0; cmd_help[i].cmd_name!=NULL; ++i)
@@ -820,15 +821,20 @@ static void Recursiva(int n){
 }
 
 int cmdAllocate(const int lenArg, char *args[PHARAM_LEN]){
-	/*
-	allocate
-	allocate -malloc
-	allocate -malloc 50
-	allocate -createshared key 50
-	allocate -shared key
-	allocate -map fich perm
-	*/
+	register short ctpos=16;
 	printf("******Lista de bloques asignados shared para el proceso %d\n", getppid());
+
+	if(strcmp(args[0], "-malloc")==0){
+		// Code
+	}else if(strcmp(args[0], "-createshared")==0){
+		// Code
+	}else if(strcmp(args[0], "-shared")==0){
+		// Code
+	}else if(strcmp(args[0], "-mmap")==0){
+		// COde
+	}else
+		if(lenArg!=1) printf("uso: allocate %s ....\n", cmd_help[ctpos].cmd_pharams);
+
 	return 1;
 }
 
