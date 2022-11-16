@@ -36,6 +36,7 @@ int argLen=0;						// Número de parametros del comadno introducido
 char *args[PHARAM_LEN];				// Parámetros del comando introducido
 char linea[COMMAND_BUFFER];			// String con el comando introducido
 List historicList;					// Lista del histórico de comandos
+List memoryList;					// Lista para la memoria reservada
 
 // Métodos del sistema
 void printPrompt();
@@ -112,7 +113,7 @@ struct cmd_data cmd_table[] = {
 	{"deltree", cmdDeltree},
 
 	// P2
-	{"allocate", NULL},
+	{"allocate", cmdAllocate},
 	{"deallocate", NULL},
 	{"i-o", NULL},
 	{"memdump", NULL},
@@ -161,6 +162,21 @@ struct cmd_help_data cmd_help[] = {
 	{NULL, NULL}
 };
 
+// Tipo de asignación en la memoria
+enum asign_type {MALLOC_MEM, SHARED_MEM, MAPPED_MEM};
+typedef enum asign_type t_asign;
+
+// Tipo de dato para la lista de la memoria
+struct mem_table_data{
+	void *dir;				// Dirección de memoria
+	unsigned long size;		// Tamaño de la reserva
+	struct tm *time;		// Tiempo de asignación
+	t_asign type;			// Tipo de asignación
+	void *data;				// Otra información
+};
+typedef struct mem_table_data memory_item;
+
+
 /* == MAIN FUNCTION == */
 int main(int argc, char const *argv[]){
 	// Mandamos la señal para captar el trap del ctrl_c
@@ -168,6 +184,7 @@ int main(int argc, char const *argv[]){
 
 	// Crear la lista del histórico
 	createList(&historicList);
+	createList(&memoryList);
 
 	do{
 		printPrompt();
@@ -176,6 +193,7 @@ int main(int argc, char const *argv[]){
 
 	// Liberar la memoria de la lista
 	deleteList(historicList, free);
+	deleteList(memoryList, free);
 	return 0;
 }
 
@@ -184,8 +202,8 @@ int main(int argc, char const *argv[]){
 // == SYSTEM METHODS ==
 // Imprime por pantalla el propmt del usuario
 void printPrompt(){
-	//printf("[#]~$ ");
-	printf("-> ");
+	printf("[#]~$ ");
+	//printf("-> ");
 }
 // Sepra el comando introducido en parametros, usando como delimitador espacios, saltos de línea y tabuladores
 int TrocearCadena(char *line, char *tokens[]){
@@ -259,6 +277,9 @@ int executeCommand(const int numTrozos, char *tokens[PHARAM_LEN]){
 void sighandler(int signum){
 	// Memoria reservada para el histórico
 	deleteList(historicList, free);
+
+	// Memoria reservada para la lista de memoria
+	deleteList(memoryList, free);
 
 	// Salida forzosa del programa
 	exit(1);
@@ -787,6 +808,7 @@ int cmdDeltree(const int lenArg, char *args[PHARAM_LEN]){
 // ==================== PRÁCTICA 2 ====================
 
 // Código de ejemplo para la resolucion de la práctica 1
+// cmdRecurse
 static void Recursiva(int n){
 	char automatico[TAMANO];
 	static char estatico[TAMANO];
@@ -798,7 +820,15 @@ static void Recursiva(int n){
 }
 
 int cmdAllocate(const int lenArg, char *args[PHARAM_LEN]){
-	// Code
+	/*
+	allocate
+	allocate -malloc
+	allocate -malloc 50
+	allocate -createshared key 50
+	allocate -shared key
+	allocate -map fich perm
+	*/
+	printf("******Lista de bloques asignados shared para el proceso %d\n", getppid());
 	return 1;
 }
 
@@ -827,6 +857,7 @@ int cmdMemory(const int lenArg, char *args[PHARAM_LEN]){
 	return 1;
 }
 
+// Done
 int cmdRecurse(const int lenArg, char *args[PHARAM_LEN]){
 	if(lenArg==1) return 1;
 	Recursiva(atoi(args[1]));
