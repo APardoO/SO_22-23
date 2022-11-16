@@ -1,7 +1,25 @@
-recurse
-recurse -5
-recurse -a
-recurse 5
-recurse a
+ayuda autores
+ayuda pid
+ayuda carpeta
+ayuda fecha
+ayuda comando
+ayuda infosis
+ayuda fin
+ayuda salir
+ayuda bye
+
+ayuda create
+ayuda stat
+ayuda list
+ayuda delete
+ayuda deltree
+
+ayuda allocate
+ayuda deallocate
+ayuda i-o
+ayuda memdump
+ayuda memfill
+ayuda memory
+ayuda recurse
 
 salir
