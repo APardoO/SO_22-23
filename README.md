@@ -9,7 +9,6 @@ En este repositorio se verán las prácticas de la asignatura de Sistemas Operat
 ## Dependences
 
 En caso de un mal funcionamiento, ejecutar los siguientes comandos para resolver las posibles dependencias:
-
 ```bash
 sudo apt-get update
 sudo apt-get install make valgrind -y
@@ -17,21 +16,18 @@ sudo apt-get install make valgrind -y
 
 ## Running Tests
 
-Para comprobar que la práctica se compila, ejecuta y libera la memoria reservada, podemos usar el comando `make` dentro de los directorios de prácticas con los archivos `makefile` de configuración adecuado para cada práctica y valgrind para la comprobación de memporia. Para hacerlo rápido ejecutar el siguiente comando cambiando el nombre `output_file` por el correspondiente:
-
+Para comprobar que la práctica se compila, ejecuta y libera la memoria reservada, podemos usar el comando `make` dentro de los directorios de prácticas con los archivos `makefile` de configuración adecuado para cada práctica y *valgrind* para la comprobación de memporia. Para hacerlo rápido, ejecutar el siguiente comando cambiando el nombre `output_file` por el correspondiente:
 ```bash
 make
 valgrind --tool=memcheck ./bin/output_file
 ```
 
-A partir de la práctica 1, el comprobante de fallas de memoria, se puede hacer ejecutando
-
+A partir de la **práctica 1**, el comprobante de fallas de memoria, se puede hacer ejecutando:
 ```bash
 make memcheck
 ```
 
-A partir de la práctica 2, se puede hacer un comprobante entre comandos introducidos. Los comandos que se escribirían en la shell interactiva, se escribirán en el archivo encontrado en el sigiente path `test/test_in`. Al ejecutar el siguiente comando, las diferencias se generarán en el siguiente path `test/differences`, que se podrá revisar con utilidades como `cat`, `vim`, `nano`...:
-
+A partir de la **práctica 2**, se puede hacer un comprobante entre comandos introducidos. Los comandos que se quisiesen comprobar en la shell, se escribirán en el archivo encontrado en el path `test/test_in`. Al ejecutar el siguiente comando, las diferencias se generarán en el path `test/differences`, que se podrá revisar con utilidades como `cat`, `vim`, `nano`...:
 ```bash
 make check
 ```
@@ -74,7 +70,6 @@ En esta práctica, se tomará contacto con el lenguaje C. Crearemos una shell in
 ### Clues
 
 Descripción básica de la shell:
-
 ```c
 while(!terminado){
   imprimirPrompt();     # Llamada a printf()
@@ -84,7 +79,6 @@ while(!terminado){
 ```
 
 El primer paso es `procesar la entrada` separando en parametros los argumentos del comando introducido, para ello se faculita la función `TrocearCadena()`:
-
 ```c
 int TrocearCadena(char * cadena, char * trozos[]){
   int i=1;
