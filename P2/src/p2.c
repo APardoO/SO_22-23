@@ -1,5 +1,5 @@
 /*	=========================================
-	Práctica 1 Sietemas Operativos 26/09/2022
+	Práctica 2 Sietemas Operativos
 	Authors:
 		-> Adrián Pardo Martinez
 		-> Hugo Correa Blanco
@@ -25,7 +25,7 @@
 // Definiciones globales de la shell
 #define PHARAM_LEN		512			// Longitud de cada parametro
 #define COMMAND_BUFFER	4096		// Longitud máxima del comando introducido
-#define MAX_PATH 		1024		//Longitud máxima para el path
+#define MAX_PATH 		1024		// Longitud máxima para el path
 #define MAX_NAME_LEN	70			// Longitud máxima para nombres auxiliares del programa 'char[]'
 #define MAX_DATE_SIZE	12			// Longitud de la cadena de texto para la fecha actual
 #define MAX_HOUR_SIZE	10			// Longitud de la cadena de texto para la hora actual
@@ -264,7 +264,8 @@ void sighandler(int signum){
 	exit(1);
 }
 
-// == PROGRAMAS PROPIOS DE LA SHELL ==
+// ================ COMANDOS PRÁCTICA 0 ===============
+
 int cmdAutores(const int lenArg, char *args[PHARAM_LEN]){
 	if(lenArg==1){
 		printf("Adrian Pardo Martinez: adrian.pardo.martinez\n");
@@ -298,6 +299,7 @@ int cmdPid(const int lenArg, char *args[PHARAM_LEN]){
 	return 1;
 }
 
+// Muestra por pantalla el directorio actual
 static int currentDirectory(){
 	char path[COMMAND_BUFFER];
 	if(getcwd(path, COMMAND_BUFFER)==NULL)
@@ -315,6 +317,7 @@ int cmdCarpeta(const int lenArg, char *args[PHARAM_LEN]){
 	return 1;
 }
 
+// Devuelve un puntero a string con la fecha actual
 static char *currentDate(){
 	time_t crrent_time = time(NULL);
 	struct tm tiempoLocal = *localtime(&crrent_time);
@@ -323,6 +326,7 @@ static char *currentDate(){
 	sprintf(current_date, "%02d/%02d/%04d", tiempoLocal.tm_mday, tiempoLocal.tm_mon+1, tiempoLocal.tm_year+1900);
 	return (current_date);
 }
+// Devuelve un puntero a string con la hora actual
 static char *currentHour(){
 	time_t crrent_time = time(NULL);
 	struct tm tiempoLocal = *localtime(&crrent_time);
@@ -347,11 +351,13 @@ int cmdFecha(const int lenArg, char *args[PHARAM_LEN]){
 	return 1;
 }
 
+// Comprueba el parametro introducido '-N'
 static int checkZeroPharam(char arg[PHARAM_LEN]){
 	int n=-1;
 	arg[0]='0';
 	return ((n=atoi(arg))<=0 && arg[1]!='0')? -1 : n;
 }
+// Muestra por pantalla los n primeros comandos del historicos
 static void printNcommands(int n){
 	Lpos auxPos;
 	register int iter=0;
@@ -454,7 +460,8 @@ int cmdExit(const int lenArg, char *args[PHARAM_LEN]){
 
 // ==================== PRÁCTICA 1 ====================
 
-char LetraTF(mode_t m){
+// Código de ejemplo para la resolucion de la práctica 1
+static char LetraTF(mode_t m){
 	switch (m&S_IFMT){	/*and bit a bit con los bits de formato,0170000 */
 		case S_IFSOCK:	return 's'; /*socket */
 		case S_IFLNK:	return 'l';	/*symbolic link*/
@@ -466,8 +473,7 @@ char LetraTF(mode_t m){
 		default: return '?';	/*desconocido, no deberia aparecer*/
 	}
 }
-
-char * ConvierteModo2(mode_t m){
+static char * ConvierteModo2(mode_t m){
 	static char permisos[12];
 	strcpy (permisos,"---------- ");
 
@@ -554,6 +560,7 @@ int borrarDir(char *dir){  		//Borra el directorio
     return 0;
 }
 
+// Muestra por pantalla información del archivo
 static void print_file_info(const char *name, const char *allPath, const struct stat *std, int longp, int accp, int linkp){	
 	if(longp==1){
 		struct tm tl;
@@ -622,6 +629,7 @@ int cmdStat(const int lenArg, char *args[PHARAM_LEN]){
 	return 1;
 }
 
+// Muestra por pantalla el contenido del directorio
 static void print_dir_data(const char *name, int hidp, int longp, int accp, int linkp){
 	DIR *dir;
 	struct dirent *ent=NULL;
@@ -651,6 +659,7 @@ static void print_dir_data(const char *name, int hidp, int longp, int accp, int 
 	}else
 		printf("[!] Error: No se puede abrir el directorio\n");
 }
+// Pocesa los datos de un directorio
 static void process_dir_data(const char *name, int recap, int recbp, int hidp, int longp, int accp, int linkp){
 	DIR *dir;
 	register struct dirent *ent=NULL;
@@ -680,6 +689,7 @@ static void process_dir_data(const char *name, int recap, int recbp, int hidp, i
 	}else
 		printf("[!] Error: No se puede abrir el directorio\n");
 }
+// Comprueba de qiue forma procesar y mostrar los datos de un directorio u archivo
 static void list_fd_data(const char *name, const struct stat *std, int recap, int recbp, int hidp, int longp, int accp, int linkp){
 	// Se activa por defecto si -reca y -recb están activas a la vez
 	// se ejecuta recb
@@ -776,6 +786,17 @@ int cmdDeltree(const int lenArg, char *args[PHARAM_LEN]){
 
 // ==================== PRÁCTICA 2 ====================
 
+// Código de ejemplo para la resolucion de la práctica 1
+static void Recursiva(int n){
+	char automatico[TAMANO];
+	static char estatico[TAMANO];
+
+	printf("parametro:%3d(%p) array %p, arr estatico %p\n", n, (void *)&n, automatico, estatico);
+
+	if(n>0)
+		Recursiva(n-1);
+}
+
 int cmdAllocate(const int lenArg, char *args[PHARAM_LEN]){
 	// Code
 	return 1;
@@ -806,15 +827,6 @@ int cmdMemory(const int lenArg, char *args[PHARAM_LEN]){
 	return 1;
 }
 
-static void Recursiva(int n){
-	char automatico[TAMANO];
-	static char estatico[TAMANO];
-
-	printf("parametro:%3d(%p) array %p, arr estatico %p\n", n, (void *)&n, automatico, estatico);
-
-	if(n>0)
-		Recursiva(n-1);
-}
 int cmdRecurse(const int lenArg, char *args[PHARAM_LEN]){
 	if(lenArg==1) return 1;
 	Recursiva(atoi(args[1]));
