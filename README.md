@@ -30,6 +30,12 @@ A partir de la práctica 1, el comprobante de fallas de memoria, se puede hacer 
 make memcheck
 ```
 
+A partir de la práctica 2, se puede hacer un comprobante entre comandos introducidos. Los comandos que se escribirían en la shell interactiva, se escribirán en el archivo encontrado en el sigiente path `test/test_in`. Al ejecutar el siguiente comando, las diferencias se generarán en el siguiente path `test/differences`, que se podrá revisar con utilidades como `cat`, `vim`, `nano`...:
+
+```bash
+make check
+```
+
 ## Practica 0
 
 En esta práctica, se tomará contacto con el lenguaje C. Crearemos una shell interactiva, se añadirán comandos en las próximas prácticas o versiones de la shell. Nuestra shell se basará en cinco fases:
