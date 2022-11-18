@@ -20,6 +20,8 @@
 #include <sys/types.h>				// Obtiene los tipos de datos del sistema
 #include <sys/utsname.h>			// Obtiene informacñon del sistema [LINUX]
 #include <fcntl.h>					// ?
+#include <sys/wait.h>				//Incluye funciones wait
+#include <ctype.h>				//Incluye funciones para comprobar si es un numero
 
 #include "List.h"					// Librería con las funcionalidades de la lista
 
@@ -101,10 +103,10 @@ struct cmd_data cmd_table[] = {
 	// P2
 	{"allocate", cmdAllocate},		// Pardo
 	{"deallocate", cmdDeallocate},	// Pardo
-	{"i-o", NULL},
+	{"i-o", cmdIo},
 	{"memdump", NULL},
 	{"memfill", NULL},
-	{"memory", NULL},
+	{"memory", cmdMemory},
 	{"recurse", cmdRecurse},		// Done
 
 	{NULL, NULL}
@@ -1159,10 +1161,88 @@ int cmdDeallocate(const int lenArg, char *args[PHARAM_LEN]){
 	return 1;
 }
 
-int cmdIo(const int lenArg, char *args[PHARAM_LEN]){
-	// Code
-	return 1;
+int LeerFichero (char *fich, void *p, int n){ /* le n bytes del fichero fich en p */
+    int nleidos,tam=n; /*si n==-1 lee el fichero completo*/
+    int df, aux;
+    struct stat s;
+    if (stat (fich,&s)==-1 || (df=open(fich,O_RDONLY))==-1)
+        return -1;
+    if (n==-1)
+        tam= s.st_size;
+    if ((nleidos=read(df,p, tam))==-1){
+        aux=errno;
+        close(df);
+        errno=aux;
+        return -1;
+    }
+    close (df);
+    return (nleidos);
 }
+
+
+int EscribirFichero (char *fich, void *p, int n){
+    int nescritos,tam=n;
+    int df, aux;
+    df=open(fich,O_RDWR);
+    if((nescritos=write(df,p,tam))==-1){
+        aux=errno;
+        close(df);
+        errno=aux;
+        return -1;
+    }
+    close (df);
+    return (nescritos);
+}
+
+int cmdIo(const int lenArg, char *args[PHARAM_LEN]){
+	
+	int t;
+	
+	if(lenArg==1){
+		printf("uso: e-s [read|write] ......\n");
+		return -1;
+		}
+	
+	if(lenArg >1 && lenArg<5){
+	printf("Faltan parametros\n");
+	return -1;
+	}
+	
+        char *ptr;
+        if(strcmp(args[1], "read")== 0){
+            int n = ((ssize_t)-1);
+            long addr = strtoul(args[3],&ptr,16);
+            
+            n = atoi(args[4]);
+            
+            if((t=LeerFichero(args[2], (long *)addr, n))==-1)
+            	perror("error de lectura");
+            else printf("leidos %d bytes en %ld\n",t,addr);
+            	
+            
+            
+        }else if(strcmp(args[1], "write")== 0){
+            if((strcmp(args[2], "-o")==0)){
+                creat(args[3], 0777);
+                long addr = strtoul(args[4],&ptr,16);
+                if((t=EscribirFichero(args[3], (long *)addr, atoi(args[5])))==-1)
+                    perror("error de escritura");
+                else printf("escritos %d bytes en %ld\n",t,addr);
+                	
+            }else if(open(args[2],O_RDWR)==-1){
+                creat(args[2], 0777);
+                long addr = strtoul(args[3],&ptr,16);
+                if((t=EscribirFichero(args[2], (long *)addr, atoi(args[4])))==-1)
+                    perror("error de escritura");
+                else printf("escritos %d bytes en %ld\n",t,addr);
+            }
+        }
+     	
+       
+    
+    return 1;
+}
+
 
 int cmdMemdump(const int lenArg, char *args[PHARAM_LEN]){
 	// Cdde
@@ -1174,9 +1254,78 @@ int cmdMemfill(const int lenArg, char *args[PHARAM_LEN]){
 	return 1;
 }
 
+void Do_pmap (void) 
+ { pid_t pid;       
+   char elpid[32];
+   char *argv[4]={"pmap",elpid,NULL};
+   
+   sprintf (elpid,"%d", (int) getpid());
+   if ((pid=fork())==-1){
+      perror ("Imposible crear proceso");
+      return;
+      }
+   if (pid==0){
+      if (execvp(argv[0],argv)==-1)
+         perror("cannot execute pmap (linux, solaris)");
+         
+      argv[0]="procstat"; argv[1]="vm"; argv[2]=elpid; argv[3]=NULL;   
+      if (execvp(argv[0],argv)==-1)/*No hay pmap, probamos procstat FreeBSD */
+         perror("cannot execute procstat (FreeBSD)");
+         
+      argv[0]="procmap",argv[1]=elpid;argv[2]=NULL;    
+            if (execvp(argv[0],argv)==-1)  /*probamos procmap OpenBSD*/
+         perror("cannot execute procmap (OpenBSD)");
+         
+      argv[0]="vmmap"; argv[1]="-interleave"; argv[2]=elpid;argv[3]=NULL;
+      if (execvp(argv[0],argv)==-1) /*probamos vmmap Mac-OS*/
+         perror("cannot execute vmmap (Mac-OS)");      
+      exit(1);
+  }
+  waitpid (pid,NULL,0);
+}
+
+int n1=0,n2=0,n3=0;	//variables glbales para memory
+
 int cmdMemory(const int lenArg, char *args[PHARAM_LEN]){
-	// Code
+	
+    if(lenArg >1){
+        
+    	if(strcmp(args[1], "-vars")== 0){
+                int x=0,y=0,z=0;
+                static int a=0,b=0,c=0;
+
+                printf("Variables locales:\t%p, %p, %p\n", &x, &y, &z);
+                printf("Variables estaticas:\t%p, %p, %p\n", &a, &b, &c);
+                printf("Variables globales:\t%p, %p, %p\n", &n1, &n2, &n3);
+
+            }if(strcmp(args[1], "-funcs")== 0){
+                printf("Funciones programa:\t%p, %p, %p\n", cmdAutores, cmdPid, cmdInfosys);
+                printf("Funciones libreria:\t%p, %p, %p\n", malloc, printf, strcmp);
+
+            }if(strcmp(args[1], "-blocks")== 0){
+                cmdAllocate(1, NULL);
+
+            }else if(strcmp(args[1], "-all")== 0){
+                
+                char *input[PHARAM_LEN] = {" ","-vars"};
+                cmdMemory(2,input);
+                char *input2[PHARAM_LEN] = {" ","-funcs"};
+                cmdMemory(2,input2);
+                char *input3[PHARAM_LEN] = {" ","-blocks"};
+                cmdMemory(2,input3);
+
+            }else if(strcmp(args[1], "-pmap")== 0){
+                Do_pmap();
+            }
+        
+    }else{
+        char *input[PHARAM_LEN] = {" ","-all"};
+        cmdMemory(2,input);
+        
+    }
+    
 	return 1;
+}
 }
 
 // Done
