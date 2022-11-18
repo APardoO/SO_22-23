@@ -1326,7 +1326,6 @@ int cmdMemory(const int lenArg, char *args[PHARAM_LEN]){
     
 	return 1;
 }
-}
 
 // Done
 int cmdRecurse(const int lenArg, char *args[PHARAM_LEN]){
