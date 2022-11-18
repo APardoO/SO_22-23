@@ -35,6 +35,7 @@ $(TARGET): $(OBJS)
 	gcc $(CFLAGS) -o $(TARGET) $(OBJS)
 
 .PHONY: clean
+
 clean:
 	@rm -r $(OBJ_DIR) $(BIN_DIR) $(LAK_NAME) $(USER_OUTPUT_FILE) $(REFER_OUTPUT_FILE) $(DIFFER_OUT) 2>/dev/null
 
