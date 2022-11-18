@@ -819,78 +819,6 @@ int cmdDeltree(const int lenArg, char *args[PHARAM_LEN]){
 
 // ==================== PRÁCTICA 2 ====================
 
-// Código de ejemplo para la resolucion de la práctica 1
-// cmdAllocate
-static void * ObtenerMemoriaShmget(key_t clave, size_t tam, memory_item *item){
-	void * p;
-	int aux, id, flags = 0777;
-	struct shmid_ds s;
-
-	if(tam)     //tam distito de 0 indica crear
-		flags = flags | IPC_CREAT | IPC_EXCL;
-
-	if(clave==IPC_PRIVATE){  //no nos vale
-		errno=EINVAL;
-		return NULL;
-	
-	}if((id=shmget(clave, tam, flags))==-1)
-		return (NULL);
-
-	if((p=shmat(id,NULL,0))==(void*) -1){
-		aux=errno;
-		
-		if (tam)
-			shmctl(id,IPC_RMID,NULL);
-		
-		errno=aux;
-		return (NULL);
-	}
-
-	shmctl(id,IPC_STAT,&s);
-	
-	item->size = s.shm_segsz;
-	item->dir = p;
-
-	if(!insertElement(memoryList, item)){
-		printf("[!] Error: %s\n", strerror(ENOMEM));
-		return (NULL);
-	}
-	
-	// Guardar en la lista   InsertarNodoShared (&L, p, s.shm_segsz, clave);
-	return (p);
-}
-// cmdDeallocate
-static void do_DeallocateDelkey(char *args){
-	key_t clave;
-	int id;
-	char *key = args;
-
-	if(key==NULL || (clave = (key_t)strtoul(key,NULL,10))==IPC_PRIVATE){
-		printf("      delkey necesita clave_valida\n");
-		return;
-	}
-
-	if((id=shmget(clave,0,0666))==-1){
-		perror("shmget: imposible obtener memoria compartida");
-		return;
-	}
-
-	if(shmctl(id,IPC_RMID,NULL)==-1)
-		perror("shmctl: imposible eliminar memoria compartida\n");
-
-	// Eliminar de la lista de memoria el elemento con el id asociado
-}
-// cmdRecurse
-static void Recursiva(int n){
-	char automatico[TAMANO];
-	static char estatico[TAMANO];
-
-	printf("parametro:%3d(%p) array %p, arr estatico %p\n", n, (void *)&n, automatico, estatico);
-
-	if(n>0)
-		Recursiva(n-1);
-}
-
 // Liveración de la memoria en la lista de memoria
 static void freeMemoryListItem(void *data){
 	memory_item *item = (memory_item *)(data);
@@ -906,7 +834,6 @@ static void freeMemoryListItem(void *data){
 	else
 		free(item);
 }
-
 static char *t_asigntoa(t_asign asign){
 	static char asign_name[7];
 	strcpy(asign_name, "no_def");
@@ -938,6 +865,7 @@ static void print_memList(t_asign asign){
 
 			if(auxItem->type == SHARED_MEM)
 				printf(" (key %u)", auxItem->data.key);
+			printf("\n");
 		
 		// En caso de necesitar una salida concreta -> parseo del tipo de memoria reservada
 		}else if(auxItem->type == asign){
@@ -945,24 +873,91 @@ static void print_memList(t_asign asign){
 
 			if(auxItem->type == SHARED_MEM)
 				printf(" (key %u)", auxItem->data.key);
+			printf("\n");
 		}
-		
-		printf("\n");
 	}
 }
+
+// Código de ejemplo para la resolucion de la práctica 1
+// cmdAllocate
+static void * ObtenerMemoriaShmget(key_t clave, size_t tam, memory_item *item){
+	void * p;
+	int aux, id, flags = 0777;
+	struct shmid_ds s;
+
+	if(tam)     //tam distito de 0 indica crear
+		flags = flags | IPC_CREAT | IPC_EXCL;
+
+	if(clave==IPC_PRIVATE){  //no nos vale
+		printf("La llave no sirve\n");
+		errno=EINVAL;
+		return NULL;
+	
+	}if((id=shmget(clave, tam, flags))==-1)
+		return (NULL);
+
+	if((p=shmat(id,NULL,0))==(void*) -1){
+		aux=errno;
+		
+		if (tam)
+			shmctl(id,IPC_RMID,NULL);
+		
+		errno=aux;
+		return (NULL);
+	}
+
+	shmctl(id,IPC_STAT,&s);
+
+	item->size = s.shm_segsz;
+	item->dir = p;
+
+	if(!insertElement(memoryList, item)){
+		printf("[!] Error: %s\n", strerror(ENOMEM));
+		return (NULL);
+	}
+	
+	// Guardar en la lista   InsertarNodoShared (&L, p, s.shm_segsz, clave);
+	return (p);
+}
+// cmdDeallocate
+static void do_DeallocateDelkey(char *args){
+	key_t clave;
+	int id;
+	char *key = args;
+
+	if(key==NULL || (clave = (key_t)strtoul(key,NULL,10))==IPC_PRIVATE){
+		printf("      delkey necesita clave_valida\n");
+		return;
+	}
+
+	if((id=shmget(clave,0,0666))==-1){
+		perror("shmget: imposible obtener memoria compartida");
+		return;
+	}
+
+	if(shmctl(id,IPC_RMID,NULL)==-1)
+		perror("shmctl: imposible eliminar memoria compartida\n");
+}
+// cmdRecurse
+static void Recursiva(int n){
+	char automatico[TAMANO];
+	static char estatico[TAMANO];
+
+	printf("parametro:%3d(%p) array %p, arr estatico %p\n", n, (void *)&n, automatico, estatico);
+
+	if(n>0)
+		Recursiva(n-1);
+}
+
 int cmdAllocate(const int lenArg, char *args[PHARAM_LEN]){
 	register short ctpos = 16;
 	time_t currentTime;
 	memory_item *nwItem = (memory_item *)malloc(sizeof(memory_item));
 
-	if(nwItem==NULL){
+	if(nwItem==NULL)
 		printf("[!] Error: %s\n", strerror(ENOMEM));
-		return 1;
-	}
-
-	if(lenArg==1)
+	else if(lenArg==1)
 		print_memList(NOT_DEFINED);
-
 	else if(strcmp(args[1], "-malloc")==0){
 		// En caso de que se pasen solo dos parametros, se muestra la lista solo con las reservas malloc
 		if(lenArg==2)
@@ -998,6 +993,7 @@ int cmdAllocate(const int lenArg, char *args[PHARAM_LEN]){
 
 			printf("Asignados %lu bytes en %p\n", (unsigned long) nwItem->size, nwItem->dir);
 		}
+
 	}else if(strcmp(args[1], "-createshared")==0){
 		// En caso de que no se pasen los parámetros adecuados
 		if(lenArg<4)
@@ -1015,18 +1011,18 @@ int cmdAllocate(const int lenArg, char *args[PHARAM_LEN]){
 			currentTime = time(NULL);
 			nwItem->time = *localtime(&currentTime);
 			nwItem->type = SHARED_MEM;
-			nwItem->data.key = (key_t)strtoul(args[2], NULL, 10);
 			nwItem->data.file_name = NULL;
 			nwItem->data.file_descriptor = 0;
 
 			// Comprobamos si se pudo cerear la memoria compartida
-			if(ObtenerMemoriaShmget(nwItem->data.key, nwItem->size, nwItem) == NULL){
+			if((nwItem->data.key = (key_t)strtoul(args[2], NULL, 10))==0 || ObtenerMemoriaShmget(nwItem->data.key, nwItem->size, nwItem)==NULL){
 				printf("Imposible asignar memoria compartida clave %lu:%s\n", (unsigned long) nwItem->data.key, strerror(errno));
 				return 1;
 			}
 
 			printf("Asignados %lu bytes en %p\n", (unsigned long) nwItem->size, nwItem->dir);
 		}
+
 	}else if(strcmp(args[1], "-shared")==0){
 		// En caso de que no se pasen los parametros adecuados
 		if(lenArg==2)
@@ -1042,7 +1038,9 @@ int cmdAllocate(const int lenArg, char *args[PHARAM_LEN]){
 			nwItem->data.file_name = NULL;
 			nwItem->data.file_descriptor = 0;
 
-			if((nwItem->data.key = (key_t)strtoul(args[2], NULL, 10))==0 || ObtenerMemoriaShmget(nwItem->data.key, nwItem->size, nwItem) == NULL){
+			if((nwItem->data.key = (key_t)strtoul(args[2], NULL, 10))==0 || ObtenerMemoriaShmget(nwItem->data.key, nwItem->size, nwItem)==NULL){
+				if(nwItem->data.key==0)
+					printf("Es el key\n");
 				printf("Imposible asignar memoria compartida clave %lu:%s\n", (unsigned long) nwItem->data.key, strerror(errno));
 				return 1;
 			}
@@ -1052,16 +1050,21 @@ int cmdAllocate(const int lenArg, char *args[PHARAM_LEN]){
 
 	}else if(strcmp(args[1], "-mmap")==0){
 		// Code
-	}else
+	
+	}else{
 		if(lenArg>1) printf("uso: allocate %s ....\n", cmd_help[ctpos].cmd_pharams);
+		free(nwItem);
+	}
 
 	return 1;
 }
 
 int cmdDeallocate(const int lenArg, char *args[PHARAM_LEN]){
-	memory_item *infoData;
+	memory_item *infoData = (memory_item *)malloc(sizeof(memory_item));
 	size_t tam;
+	key_t llave;
 	Lpos auxPos;
+	char directory[MAX_NAME_LEN];
 
 	if(lenArg==1)
 		print_memList(NOT_DEFINED);
@@ -1097,50 +1100,64 @@ int cmdDeallocate(const int lenArg, char *args[PHARAM_LEN]){
 			infoData->data.file_descriptor=0;
 			free(infoData);
 		}
-
+	
 	}else if(strcmp(args[1], "-shared")==0){
 		// En caso de pasar parametros incorrectos, se muestra la lista de memoria compartida
 		if(lenArg<=2)
 			print_memList(SHARED_MEM);
 
 		else{
-			// Code
+			if(args[2] && (llave = (key_t)strtoul(args[2], NULL, 10))!=0){
+				for(auxPos=firstElement(memoryList); auxPos!=NULL; auxPos=nextElement(memoryList, auxPos)){
+					infoData = getElement(memoryList, auxPos);
+					if(infoData->data.key==llave){
+						infoData = deletePosition(memoryList, auxPos);
+						if(shmdt(infoData->dir)==-1)
+							printf("[!] Error: %s\n", strerror(errno));
+						free(infoData);
+						break;
+					}
+				}
+			}else
+				printf("[!] Error: %s\n", strerror(EINVAL));
 		}
-
+	
 	}else if(strcmp(args[1], "-delkey")==0){
 		// En caso de pasar parametros incorrectos, se muestra la lista de memoria compartida
 		if(lenArg<=2)
 			print_memList(SHARED_MEM);
 
 		else{
-			do_DeallocateDelkey(args[2]);
+			// Comprobante de que se intenta hacer una reserva de 0 bytes
+			if(args[2] && (llave = (key_t)strtoul(args[2], NULL, 10))!=0)
+				do_DeallocateDelkey(args[2]);
+			else
+				printf("[!] Error: %s\n", strerror(EINVAL));
 		}
-
+	
 	}else if(strcmp(args[1], "-mmap")==0){
 		// Code
 
 	}else{
 		// Comprobar si el primer parametro es una dirección de memoria en la cual se ha mapeado alguna dirección
+		if(argLen==2 && args[1][0]=='0' && args[1][1]=='x'){
+			for(auxPos=firstElement(memoryList); auxPos!=NULL; auxPos=nextElement(memoryList, auxPos)){
+				infoData = getElement(memoryList, auxPos);
+				sprintf(directory, "%p", infoData->dir);
+				if(strcmp(args[1], directory)==0) break;
+			}
+			if(auxPos==NULL)
+				printf("Direccion %s no asignada con malloc, shared o mmap\n", args[1]);
+			else{
+				infoData = deletePosition(memoryList, auxPos);
+				free(infoData);
+			}
+		}else
+			printf("Direccion 0x%s no asignada con malloc, shared o mmap\n", args[1]);
 	}
 
 	return 1;
 }
-/*
-typedef struct{
-	key_t key;				// Clave utilizada en share
-	char *file_name;		// Nombre del archivo utilizado en mmap
-	int file_descriptor;	// Redireccionadorutilizado en mmap
-} t_oinfo;
-// Estructura básica
-struct mem_table_data{
-	void *dir;				// Dirección de memoria
-	size_t size;			// Tamaño de la reserva
-	struct tm time;			// Tiempo de asignación
-	t_asign type;			// Tipo de asignación
-	t_oinfo data;			// Otra información
-};
-typedef struct mem_table_data memory_item;
-*/
 
 int cmdIo(const int lenArg, char *args[PHARAM_LEN]){
 	// Code
