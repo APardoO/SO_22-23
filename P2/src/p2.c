@@ -16,6 +16,7 @@
 #include <dirent.h>					// Librería que importa las entradas de directorios
 #include <signal.h>					// Librería que define macros para captar salidas anómalas
 #include <sys/shm.h>				// Librería con utilidades para la memoria compartida
+#include <sys/mman.h>				// ?
 #include <sys/stat.h>				// Obtener información de los archivos
 #include <sys/types.h>				// Obtiene los tipos de datos del sistema
 #include <sys/utsname.h>			// Obtiene informacñon del sistema [LINUX]
@@ -881,7 +882,6 @@ static void print_memList(t_asign asign){
 }
 
 // Código de ejemplo para la resolucion de la práctica 1
-// cmdAllocate
 static void * ObtenerMemoriaShmget(key_t clave, size_t tam, memory_item *item){
 	void * p;
 	int aux, id, flags = 0777;
@@ -921,7 +921,6 @@ static void * ObtenerMemoriaShmget(key_t clave, size_t tam, memory_item *item){
 	// Guardar en la lista   InsertarNodoShared (&L, p, s.shm_segsz, clave);
 	return (p);
 }
-// cmdDeallocate
 static void do_DeallocateDelkey(char *args){
 	key_t clave;
 	int id;
@@ -940,7 +939,6 @@ static void do_DeallocateDelkey(char *args){
 	if(shmctl(id,IPC_RMID,NULL)==-1)
 		perror("shmctl: imposible eliminar memoria compartida\n");
 }
-// cmdRecurse
 static void Recursiva(int n){
 	char automatico[TAMANO];
 	static char estatico[TAMANO];
@@ -951,6 +949,60 @@ static void Recursiva(int n){
 		Recursiva(n-1);
 }
 
+static void * MapearFichero(char * fichero, int protection){
+	int df, map = MAP_PRIVATE, modo = O_RDONLY;
+	struct stat s;
+	void *p;
+
+	time_t currentTime = time(NULL);
+
+	memory_item *nwItem = (memory_item *)malloc(sizeof(memory_item));
+
+	if(protection&PROT_WRITE)
+		modo=O_RDWR;
+
+	if(stat(fichero,&s)==-1 || (df=open(fichero, modo))==-1)
+		return NULL;
+
+	if((p=mmap(NULL,s.st_size, protection,map,df,0))==MAP_FAILED)
+		return NULL;
+
+	/* Guardar en la lista    InsertarNodoMmap (&L,p, s.st_size,df,fichero); */
+
+	nwItem->dir = p;
+	nwItem->size = s.st_size;
+	nwItem->time = *localtime(&currentTime);
+	nwItem->type = MAPPED_MEM;
+	nwItem->data.key=0;
+	nwItem->data.file_name = strdup(fichero);
+	nwItem->data.file_descriptor = df;
+
+	if(!insertElement(memoryList, nwItem))
+		printf("[!] Error: %s\n", strerror(ENOMEM));
+
+	return p;
+}
+static void do_AllocateMmap(char *fich, char *permisos){ 
+	char *perm;
+	void *p;
+	int protection=0;
+
+	if(fich==NULL){
+		print_memList(MAPPED_MEM);
+		return;
+
+	}if((perm=permisos)!=NULL && strlen(perm)<4){
+		if(strchr(perm,'r')!=NULL) protection|=PROT_READ;
+		if(strchr(perm,'w')!=NULL) protection|=PROT_WRITE;
+		if(strchr(perm,'x')!=NULL) protection|=PROT_EXEC;
+	}	
+	
+	if((p=MapearFichero(fich,protection))==NULL)
+		perror ("Imposible mapear fichero");
+	else
+		printf ("fichero %s mapeado en %p\n", fich, p);
+}
+
 int cmdAllocate(const int lenArg, char *args[PHARAM_LEN]){
 	register short ctpos = 16;
 	time_t currentTime;
@@ -958,8 +1010,10 @@ int cmdAllocate(const int lenArg, char *args[PHARAM_LEN]){
 
 	if(nwItem==NULL)
 		printf("[!] Error: %s\n", strerror(ENOMEM));
+
 	else if(lenArg==1)
 		print_memList(NOT_DEFINED);
+	
 	else if(strcmp(args[1], "-malloc")==0){
 		// En caso de que se pasen solo dos parametros, se muestra la lista solo con las reservas malloc
 		if(lenArg==2)
@@ -1040,7 +1094,7 @@ int cmdAllocate(const int lenArg, char *args[PHARAM_LEN]){
 			nwItem->data.file_name = NULL;
 			nwItem->data.file_descriptor = 0;
 
-			if((nwItem->data.key = (key_t)strtoul(args[2], NULL, 10))==0 || ObtenerMemoriaShmget(nwItem->data.key, nwItem->size, nwItem)==NULL){
+			if((nwItem->data.key = (key_t)strtoul(args[2], NULL, 10))==0 || ObtenerMemoriaShmget(nwItem->data.key, 0, nwItem)==NULL){
 				if(nwItem->data.key==0)
 					printf("Es el key\n");
 				printf("Imposible asignar memoria compartida clave %lu:%s\n", (unsigned long) nwItem->data.key, strerror(errno));
@@ -1051,7 +1105,10 @@ int cmdAllocate(const int lenArg, char *args[PHARAM_LEN]){
 		}
 
 	}else if(strcmp(args[1], "-mmap")==0){
-		// Code
+		if(lenArg<4)
+			print_memList(MAPPED_MEM);
+		else
+			do_AllocateMmap(args[2], args[3]);
 	
 	}else{
 		if(lenArg>1) printf("uso: allocate %s ....\n", cmd_help[ctpos].cmd_pharams);
@@ -1100,7 +1157,6 @@ int cmdDeallocate(const int lenArg, char *args[PHARAM_LEN]){
 			infoData->data.key=0;
 			infoData->data.file_name=NULL;
 			infoData->data.file_descriptor=0;
-			free(infoData);
 		}
 	
 	}else if(strcmp(args[1], "-shared")==0){
@@ -1116,7 +1172,6 @@ int cmdDeallocate(const int lenArg, char *args[PHARAM_LEN]){
 						infoData = deletePosition(memoryList, auxPos);
 						if(shmdt(infoData->dir)==-1)
 							printf("[!] Error: %s\n", strerror(errno));
-						free(infoData);
 						break;
 					}
 				}
@@ -1152,16 +1207,17 @@ int cmdDeallocate(const int lenArg, char *args[PHARAM_LEN]){
 				printf("Direccion %s no asignada con malloc, shared o mmap\n", args[1]);
 			else{
 				infoData = deletePosition(memoryList, auxPos);
-				free(infoData);
 			}
 		}else
 			printf("Direccion 0x%s no asignada con malloc, shared o mmap\n", args[1]);
 	}
 
+	free(infoData);
+
 	return 1;
 }
 
-int LeerFichero (char *fich, void *p, int n){ /* le n bytes del fichero fich en p */
+static int LeerFichero (char *fich, void *p, int n){ /* le n bytes del fichero fich en p */
     int nleidos,tam=n; /*si n==-1 lee el fichero completo*/
     int df, aux;
     struct stat s;
@@ -1178,9 +1234,7 @@ int LeerFichero (char *fich, void *p, int n){ /* le n bytes del fichero fich en 
     close (df);
     return (nleidos);
 }
-
-
-int EscribirFichero (char *fich, void *p, int n){
+static int EscribirFichero (char *fich, void *p, int n){
     int nescritos,tam=n;
     int df, aux;
     df=open(fich,O_RDWR);
@@ -1243,7 +1297,6 @@ int cmdIo(const int lenArg, char *args[PHARAM_LEN]){
     return 1;
 }
 
-
 int cmdMemdump(const int lenArg, char *args[PHARAM_LEN]){
 	// Cdde
 	return 1;
@@ -1297,8 +1350,8 @@ int cmdMemfill(const int lenArg, char *args[PHARAM_LEN]){
     return 1;
 }
 
-void Do_pmap (void) 
- { pid_t pid;       
+void Do_pmap(){
+   pid_t pid;       
    char elpid[32];
    char *argv[4]={"pmap",elpid,NULL};
    
@@ -1327,39 +1380,46 @@ void Do_pmap (void)
   waitpid (pid,NULL,0);
 }
 
-int n1=0,n2=0,n3=0;	//variables glbales para memory
+void aux_fun1(){}
+
+void aux_fun2(){}
+
+void aux_fun3(){}
+
+void *n1,*n2,*n3;	//variables glbales para memory
 
 int cmdMemory(const int lenArg, char *args[PHARAM_LEN]){
 	
     if(lenArg >1){
-        
-    	if(strcmp(args[1], "-vars")== 0){
-                int x=0,y=0,z=0;
-                static int a=0,b=0,c=0;
+    	if(strcmp(args[1], "-vars")==0){
+            void *x, *y, *z;
+            //static int a,b,c;
 
-                printf("Variables locales:\t%p, %p, %p\n", &x, &y, &z);
-                printf("Variables estaticas:\t%p, %p, %p\n", &a, &b, &c);
-                printf("Variables globales:\t%p, %p, %p\n", &n1, &n2, &n3);
+            printf("Variables locales:\t%p, %p, %p\n", &x, &y, &z);
+            //printf("Variables estaticas:\t%p, %p, %p\n", (void *)&a, (void *)&b, (void *)&c);
+            //printf("Variables globales:\t%p, %p, %p\n", n1, n2, n3);
 
-            }if(strcmp(args[1], "-funcs")== 0){
-                printf("Funciones programa:\t%p, %p, %p\n", cmdAutores, cmdPid, cmdInfosys);
-                printf("Funciones libreria:\t%p, %p, %p\n", malloc, printf, strcmp);
+        }if(strcmp(args[1], "-funcs")== 0){
+            //printf("Funciones programa:\t%p, %p, %p\n",  aux_fun1(), aux_fun2(), aux_fun3());
+            //printf("Funciones libreria:\t%p, %p, %p\n", strcmp, rmdir, closedir);
 
-            }if(strcmp(args[1], "-blocks")== 0){
-                cmdAllocate(1, NULL);
+        }if(strcmp(args[1], "-blocks")== 0){
+            cmdAllocate(1, NULL);
 
-            }else if(strcmp(args[1], "-all")== 0){
+        }else if(strcmp(args[1], "-all")== 0){
+               
+            char *input[PHARAM_LEN] = {" ","-vars"};
+            cmdMemory(2,input);
+
+            char *input2[PHARAM_LEN] = {" ","-funcs"};
+            cmdMemory(2,input2);
                 
-                char *input[PHARAM_LEN] = {" ","-vars"};
-                cmdMemory(2,input);
-                char *input2[PHARAM_LEN] = {" ","-funcs"};
-                cmdMemory(2,input2);
-                char *input3[PHARAM_LEN] = {" ","-blocks"};
-                cmdMemory(2,input3);
+            char *input3[PHARAM_LEN] = {" ","-blocks"};
+            cmdMemory(2,input3);
 
-            }else if(strcmp(args[1], "-pmap")== 0){
-                Do_pmap();
-            }
+        }else if(strcmp(args[1], "-pmap")== 0){
+            Do_pmap();
+        }
         
     }else{
         char *input[PHARAM_LEN] = {" ","-all"};
@@ -1370,7 +1430,6 @@ int cmdMemory(const int lenArg, char *args[PHARAM_LEN]){
 	return 1;
 }
 
-// Done
 int cmdRecurse(const int lenArg, char *args[PHARAM_LEN]){
 	if(lenArg==1) return 1;
 	Recursiva(atoi(args[1]));
