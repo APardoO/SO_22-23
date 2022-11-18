@@ -849,7 +849,6 @@ static void * ObtenerMemoriaShmget(key_t clave, size_t tam, memory_item *item){
 	shmctl(id,IPC_STAT,&s);
 	
 	item->size = s.shm_segsz;
-	item->time = s.shm_ctime;
 	item->dir = p;
 
 	if(!insertElement(memoryList, item)){
@@ -861,10 +860,10 @@ static void * ObtenerMemoriaShmget(key_t clave, size_t tam, memory_item *item){
 	return (p);
 }
 // cmdDeallocate
-static void do_DeallocateDelkey(char *args[]){
+static void do_DeallocateDelkey(char *args){
 	key_t clave;
 	int id;
-	char *key=args[0];
+	char *key = args;
 
 	if(key==NULL || (clave = (key_t)strtoul(key,NULL,10))==IPC_PRIVATE){
 		printf("      delkey necesita clave_valida\n");
@@ -878,6 +877,8 @@ static void do_DeallocateDelkey(char *args[]){
 
 	if(shmctl(id,IPC_RMID,NULL)==-1)
 		perror("shmctl: imposible eliminar memoria compartida\n");
+
+	// Eliminar de la lista de memoria el elemento con el id asociado
 }
 // cmdRecurse
 static void Recursiva(int n){
@@ -1011,6 +1012,8 @@ int cmdAllocate(const int lenArg, char *args[PHARAM_LEN]){
 			}
 
 			// Datos del item
+			currentTime = time(NULL);
+			nwItem->time = *localtime(&currentTime);
 			nwItem->type = SHARED_MEM;
 			nwItem->data.key = (key_t)strtoul(args[2], NULL, 10);
 			nwItem->data.file_name = NULL;
@@ -1033,6 +1036,8 @@ int cmdAllocate(const int lenArg, char *args[PHARAM_LEN]){
 		// en caso contrario lo asigna
 		else{
 			// Datos del item
+			currentTime = time(NULL);
+			nwItem->time = *localtime(&currentTime);
 			nwItem->type = SHARED_MEM;
 			nwItem->data.file_name = NULL;
 			nwItem->data.file_descriptor = 0;
@@ -1108,7 +1113,7 @@ int cmdDeallocate(const int lenArg, char *args[PHARAM_LEN]){
 			print_memList(SHARED_MEM);
 
 		else{
-			// Code
+			do_DeallocateDelkey(args[2]);
 		}
 
 	}else if(strcmp(args[1], "-mmap")==0){
