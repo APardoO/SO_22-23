@@ -105,7 +105,7 @@ struct cmd_data cmd_table[] = {
 	{"deallocate", cmdDeallocate},	// Pardo
 	{"i-o", cmdIo},
 	{"memdump", NULL},
-	{"memfill", NULL},
+	{"memfill", cmdMemfill},
 	{"memory", cmdMemory},
 	{"recurse", cmdRecurse},		// Done
 
@@ -1249,9 +1249,52 @@ int cmdMemdump(const int lenArg, char *args[PHARAM_LEN]){
 	return 1;
 }
 
+void LlenarMemoria (void *p, size_t cont, unsigned char byte)
+{
+  unsigned char *arr=(unsigned char *) p;
+  size_t i;
+  
+  for (i=0; i<cont;i++)
+		arr[i]=byte;
+  
+  
+  printf("Llenando %ld bytes de memoria con el byte %c a partir de la direccion %p\n",cont,byte,&p);
+}
+
+
 int cmdMemfill(const int lenArg, char *args[PHARAM_LEN]){
-	// Code
-	return 1;
+	if(lenArg >1){
+        
+        size_t n = (unsigned long) 128;
+        unsigned char  c = 'A';
+        
+        
+        long addr = strtoul(args[1],NULL,16);
+        
+        if(lenArg==2){
+        
+        	LlenarMemoria((long *)addr,n,(unsigned char )c);
+        }
+        	
+        if(lenArg >=3 && isdigit(*args[2])){
+            long addr = strtoul(args[1],NULL,16);
+            n=atoi(args[2]);
+            if(lenArg==3) LlenarMemoria((long *)addr,n,c);
+            
+            else if(isdigit(*args[3])){ 
+            c = atoi(args[3]);
+            LlenarMemoria((long *)addr,n,c);}
+            else{ 
+            c = strtoul(args[3],NULL,16);
+            LlenarMemoria((long *)addr,n,c);}
+            
+        }
+
+        
+    }
+    
+    
+    return 1;
 }
 
 void Do_pmap (void) 
