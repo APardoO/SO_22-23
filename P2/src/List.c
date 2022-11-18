@@ -14,8 +14,8 @@ struct dNode{
 // Definicion de la lista
 struct lista{
 	int size;
-	struct dNode *last;
 	struct dNode *head;
+	struct dNode *last;
 };
 
 // ==== IMPLEMENTACIÓN DE LOS MÉTODOS ====
@@ -117,6 +117,49 @@ int insertElementIn(List l, Lpos p, void *element){
 
 	l->size++;
 	return 1;
+}
+
+// Devuelve el dato guardado en la posición indicada,
+// eliminando dicha posición
+// En caso de que la lista esté vacía se retorna nulo
+void *deletePosition(List l, Lpos pos){
+	void *info;
+	struct dNode *auxPos, *iter;
+
+	if(l->head==NULL && l->last==NULL && l->size==0)
+		return NULL;
+
+	// Inicio de la lista o primera posición de la lista
+	if(pos==l->head || pos==NULL){
+		auxPos = l->head;
+		
+		// Solo hay un nodo
+		if(l->size==1)
+			l->head = l->last = NULL;
+		else
+			l->head = auxPos->next;
+
+		auxPos->next = NULL;
+
+	// Ultima posicion de la lista
+	}else if(pos->next==NULL){
+		for(iter=l->head; iter->next!=pos; iter=iter->next);
+		auxPos = iter->next;
+		l->last = iter;
+		iter->next = NULL;
+
+	// Si es un elemento en el medio de la lista
+	}else{
+		for(iter=l->head; iter->next!=pos; iter=iter->next);
+		auxPos = iter->next;
+		iter->next = auxPos->next;
+		auxPos->next = NULL;	
+	}
+
+	l->size--;
+	info = auxPos->dato;
+	free(auxPos);
+	return info;
 }
 
 // Devuelve el puntero que apunta a la direccion de memoria del

@@ -16,6 +16,7 @@ Lpos prevElement(List l, Lpos pos);
 
 int insertElement(List l, void *element);
 int insertElementIn(List l, Lpos p, void *element);
+void *deletePosition(List l, Lpos pos);
 
 void *getElement(List l, Lpos pos);
 int getSize(List l);
