@@ -15,6 +15,7 @@
 #include <unistd.h>					// Librería de funcionalidades del sistema
 #include <dirent.h>					// Librería que importa las entradas de directorios
 #include <signal.h>					// Librería que define macros para captar salidas anómalas
+#include <sys/shm.h>				// Librería con utilidades para la memoria compartida
 #include <sys/stat.h>				// Obtener información de los archivos
 #include <sys/types.h>				// Obtiene los tipos de datos del sistema
 #include <sys/utsname.h>			// Obtiene informacñon del sistema [LINUX]
@@ -71,21 +72,6 @@ int cmdMemfill(const int lenArg, char *args[PHARAM_LEN]);
 int cmdMemory(const int lenArg, char *args[PHARAM_LEN]);
 int cmdRecurse(const int lenArg, char *args[PHARAM_LEN]);
 
-// ===== Métodos estáticos de la shell =====
-// P0
-static int currentDirectory();
-static char *currentDate();
-static char *currentHour();
-static int checkZeroPharam(char arg[PHARAM_LEN]);
-static void printNcommands(int n);
-// P1
-static void print_file_info(const char *name, const char *allPath, const struct stat *std, int longp, int accp, int linkp);
-static void print_dir_data(const char *name, int hidp, int longp, int accp, int linkp);
-static void process_dir_data(const char *name, int recap, int recbp, int hidp, int longp, int accp, int linkp);
-static void list_fd_data(const char *name, const struct stat *std, int recap, int recbp, int hidp, int longp, int accp, int linkp);
-// P2
-
-
 // Tabla de programas de la shell
 struct cmd_data{
 	char *cmd_name;
@@ -113,13 +99,13 @@ struct cmd_data cmd_table[] = {
 	{"deltree", cmdDeltree},
 
 	// P2
-	{"allocate", cmdAllocate},	// Pardo
-	{"deallocate", NULL},
+	{"allocate", cmdAllocate},		// Pardo
+	{"deallocate", cmdDeallocate},	// Pardo
 	{"i-o", NULL},
 	{"memdump", NULL},
 	{"memfill", NULL},
 	{"memory", NULL},
-	{"recurse", cmdRecurse},	// Done
+	{"recurse", cmdRecurse},		// Done
 
 	{NULL, NULL}
 };
@@ -164,18 +150,43 @@ struct cmd_help_data cmd_help[] = {
 };
 
 // Tipo de asignación en la memoria
-enum asign_type {MALLOC_MEM, SHARED_MEM, MAPPED_MEM};
+enum asign_type {NOT_DEFINED, MALLOC_MEM, SHARED_MEM, MAPPED_MEM};
 typedef enum asign_type t_asign;
 
-// Tipo de dato para la lista de la memoria
+// Tipos de información almacenada en los items de la lista de memoria
+// Otro tipo de información
+typedef struct{
+	key_t key;				// Clave utilizada en share
+	char *file_name;		// Nombre del archivo utilizado en mmap
+	int file_descriptor;	// Redireccionadorutilizado en mmap
+} t_oinfo;
+// Estructura básica
 struct mem_table_data{
 	void *dir;				// Dirección de memoria
-	unsigned long size;		// Tamaño de la reserva
-	struct tm *time;		// Tiempo de asignación
+	size_t size;			// Tamaño de la reserva
+	struct tm time;			// Tiempo de asignación
 	t_asign type;			// Tipo de asignación
-	void *data;				// Otra información
+	t_oinfo data;			// Otra información
 };
 typedef struct mem_table_data memory_item;
+
+
+// ===== Métodos estáticos de la shell =====
+// P0
+static int currentDirectory();
+static char *currentDate();
+static char *currentHour();
+static int checkZeroPharam(char arg[PHARAM_LEN]);
+static void printNcommands(int n);
+// P1
+static void print_file_info(const char *name, const char *allPath, const struct stat *std, int longp, int accp, int linkp);
+static void print_dir_data(const char *name, int hidp, int longp, int accp, int linkp);
+static void process_dir_data(const char *name, int recap, int recbp, int hidp, int longp, int accp, int linkp);
+static void list_fd_data(const char *name, const struct stat *std, int recap, int recbp, int hidp, int longp, int accp, int linkp);
+// P2
+static void freeMemoryListItem(void *data);
+static char *t_asigntoa(t_asign asign);
+static void print_memList(t_asign asign);
 
 
 /* == MAIN FUNCTION == */
@@ -194,7 +205,7 @@ int main(int argc, char const *argv[]){
 
 	// Liberar la memoria de la lista
 	deleteList(historicList, free);
-	deleteList(memoryList, free);
+	deleteList(memoryList, freeMemoryListItem);
 	return 0;
 }
 
@@ -203,12 +214,12 @@ int main(int argc, char const *argv[]){
 // == SYSTEM METHODS ==
 // Imprime por pantalla el propmt del usuario
 void printPrompt(){
-	//printf("[#]~$ ");
-	printf("-> ");
+	printf("[#]~$ ");
+	//printf("-> ");
 }
 // Sepra el comando introducido en parametros, usando como delimitador espacios, saltos de línea y tabuladores
 int TrocearCadena(char *line, char *tokens[]){
-	int i = 1;
+	register int i = 1;
 	if ((tokens[0]=strtok(line," \n\t"))==NULL)
 		return 0;
 	while((tokens[i]=strtok(NULL," \n\t"))!=NULL)
@@ -280,7 +291,7 @@ void sighandler(int signum){
 	deleteList(historicList, free);
 
 	// Memoria reservada para la lista de memoria
-	deleteList(memoryList, free);
+	deleteList(memoryList, freeMemoryListItem);
 
 	// Salida forzosa del programa
 	exit(1);
@@ -363,9 +374,9 @@ int cmdFecha(const int lenArg, char *args[PHARAM_LEN]){
 		return 1;
 	}
 
-	if(strcmp("-d", args[1])==0)
+	if(strcmp(args[1], "-d")==0)
 		printf("%s\n", currentDate());
-	else if(strcmp("-h", args[1])==0)
+	else if(strcmp(args[1], "-h")==0)
 		printf("%s\n", currentHour());
 	else
 		printf("[!] Error: %s\n", strerror(EINVAL));
@@ -403,7 +414,7 @@ int cmdHist(const int lenArg, char *args[PHARAM_LEN]){
 		return 1;
 	}
 
-	int n=checkZeroPharam(args[1]);
+	int n = checkZeroPharam(args[1]);
 	if(n<0)
 		printf("[!] Error: %s\n", strerror(EINVAL));
 	else
@@ -809,6 +820,65 @@ int cmdDeltree(const int lenArg, char *args[PHARAM_LEN]){
 // ==================== PRÁCTICA 2 ====================
 
 // Código de ejemplo para la resolucion de la práctica 1
+// cmdAllocate
+static void * ObtenerMemoriaShmget(key_t clave, size_t tam, memory_item *item){
+	void * p;
+	int aux, id, flags = 0777;
+	struct shmid_ds s;
+
+	if(tam)     //tam distito de 0 indica crear
+		flags = flags | IPC_CREAT | IPC_EXCL;
+
+	if(clave==IPC_PRIVATE){  //no nos vale
+		errno=EINVAL;
+		return NULL;
+	
+	}if((id=shmget(clave, tam, flags))==-1)
+		return (NULL);
+
+	if((p=shmat(id,NULL,0))==(void*) -1){
+		aux=errno;
+		
+		if (tam)
+			shmctl(id,IPC_RMID,NULL);
+		
+		errno=aux;
+		return (NULL);
+	}
+
+	shmctl(id,IPC_STAT,&s);
+	
+	item->size = s.shm_segsz;
+	item->time = s.shm_ctime;
+	item->dir = p;
+
+	if(!insertElement(memoryList, item)){
+		printf("[!] Error: %s\n", strerror(ENOMEM));
+		return (NULL);
+	}
+	
+	// Guardar en la lista   InsertarNodoShared (&L, p, s.shm_segsz, clave);
+	return (p);
+}
+// cmdDeallocate
+static void do_DeallocateDelkey(char *args[]){
+	key_t clave;
+	int id;
+	char *key=args[0];
+
+	if(key==NULL || (clave = (key_t)strtoul(key,NULL,10))==IPC_PRIVATE){
+		printf("      delkey necesita clave_valida\n");
+		return;
+	}
+
+	if((id=shmget(clave,0,0666))==-1){
+		perror("shmget: imposible obtener memoria compartida");
+		return;
+	}
+
+	if(shmctl(id,IPC_RMID,NULL)==-1)
+		perror("shmctl: imposible eliminar memoria compartida\n");
+}
 // cmdRecurse
 static void Recursiva(int n){
 	char automatico[TAMANO];
@@ -820,28 +890,252 @@ static void Recursiva(int n){
 		Recursiva(n-1);
 }
 
-int cmdAllocate(const int lenArg, char *args[PHARAM_LEN]){
-	register short ctpos=16;
+// Liveración de la memoria en la lista de memoria
+static void freeMemoryListItem(void *data){
+	memory_item *item = (memory_item *)(data);
+	
+	free(item->dir);
+	item->size=0;
+	item->data.key = 0;
+	item->data.file_name = NULL;
+	item->data.file_descriptor = 0;
+
+	if(item->type == SHARED_MEM)
+		shmdt(item->dir);
+	else
+		free(item);
+}
+
+static char *t_asigntoa(t_asign asign){
+	static char asign_name[7];
+	strcpy(asign_name, "no_def");
+
+	if(asign == MALLOC_MEM)
+		strcpy(asign_name, "malloc");
+	if(asign == SHARED_MEM)
+		strcpy(asign_name, "shared");
+	if(asign == MAPPED_MEM)
+		strcpy(asign_name, "mapped");
+
+	return asign_name;
+}
+static void print_memList(t_asign asign){
+	Lpos auxPos;
+	memory_item *auxItem;
+	char time_format[MAX_NAME_LEN];
+
 	printf("******Lista de bloques asignados shared para el proceso %d\n", getppid());
 
-	if(strcmp(args[0], "-malloc")==0){
+	for(auxPos = firstElement(memoryList); auxPos!=NULL; auxPos=nextElement(memoryList, auxPos)){
+		auxItem = getElement(memoryList, auxPos);
+
+		strftime(time_format, MAX_NAME_LEN, "%b %d %R", &auxItem->time);
+
+		// Se muestran por pantalla todas las reservas de memoria
+		if(asign == NOT_DEFINED){
+			printf("\t%p\t%13lu %s %s", auxItem->dir, (unsigned long) auxItem->size, time_format, t_asigntoa(auxItem->type));
+
+			if(auxItem->type == SHARED_MEM)
+				printf(" (key %u)", auxItem->data.key);
+		
+		// En caso de necesitar una salida concreta -> parseo del tipo de memoria reservada
+		}else if(auxItem->type == asign){
+			printf("\t%p\t%13lu %s %s", auxItem->dir, (unsigned long) auxItem->size, time_format, t_asigntoa(auxItem->type));
+
+			if(auxItem->type == SHARED_MEM)
+				printf(" (key %u)", auxItem->data.key);
+		}
+		
+		printf("\n");
+	}
+}
+int cmdAllocate(const int lenArg, char *args[PHARAM_LEN]){
+	register short ctpos = 16;
+	time_t currentTime;
+	memory_item *nwItem = (memory_item *)malloc(sizeof(memory_item));
+
+	if(nwItem==NULL){
+		printf("[!] Error: %s\n", strerror(ENOMEM));
+		return 1;
+	}
+
+	if(lenArg==1)
+		print_memList(NOT_DEFINED);
+
+	else if(strcmp(args[1], "-malloc")==0){
+		// En caso de que se pasen solo dos parametros, se muestra la lista solo con las reservas malloc
+		if(lenArg==2)
+			print_memList(MALLOC_MEM);
+
+		// Se reserva la memoria e inserta el elemento en la lista de memoria, con la indicada
+		else{
+			// Comprobante de que se intenta hacer una reserva de 0 bytes
+			if((nwItem->size = (size_t)strtoul(args[2], NULL, 10))==0){
+				printf("No se asignan bloques de 0 bytes\n");
+				return 1;
+			}
+
+			// Datos del item
+			currentTime = time(NULL);
+			nwItem->time = *localtime(&currentTime);
+			nwItem->dir = (void *)malloc(nwItem->size);
+			nwItem->type = MALLOC_MEM;
+			nwItem->data.key = 0;
+			nwItem->data.file_name = NULL;
+			nwItem->data.file_descriptor = 0;
+
+			// Comprobamos que podemos hacer la reservas
+			if(nwItem->dir == NULL){
+				printf("Imposible obtener memoria con malloc: Cannot allocate memory\n");
+				return 1;
+			}
+			
+			if(!insertElement(memoryList, nwItem)){
+				printf("[!] Error: %s\n", strerror(ENOMEM));
+				return 1;
+			}
+
+			printf("Asignados %lu bytes en %p\n", (unsigned long) nwItem->size, nwItem->dir);
+		}
+	}else if(strcmp(args[1], "-createshared")==0){
+		// En caso de que no se pasen los parámetros adecuados
+		if(lenArg<4)
+			print_memList(SHARED_MEM);
+
+		// Se reserva un bloque de memoria compartida y se añade a la lista de memoria compartida
+		else{
+			// Comprobante de que se intenta hacer una reserva de 0 bytes
+			if((nwItem->size = (size_t)strtoul(args[3], NULL, 10))==0){
+				printf("No se asignan bloques de 0 bytes\n");
+				return 1;
+			}
+
+			// Datos del item
+			nwItem->type = SHARED_MEM;
+			nwItem->data.key = (key_t)strtoul(args[2], NULL, 10);
+			nwItem->data.file_name = NULL;
+			nwItem->data.file_descriptor = 0;
+
+			// Comprobamos si se pudo cerear la memoria compartida
+			if(ObtenerMemoriaShmget(nwItem->data.key, nwItem->size, nwItem) == NULL){
+				printf("Imposible asignar memoria compartida clave %lu:%s\n", (unsigned long) nwItem->data.key, strerror(errno));
+				return 1;
+			}
+
+			printf("Asignados %lu bytes en %p\n", (unsigned long) nwItem->size, nwItem->dir);
+		}
+	}else if(strcmp(args[1], "-shared")==0){
+		// En caso de que no se pasen los parametros adecuados
+		if(lenArg==2)
+			print_memList(SHARED_MEM);
+
+		// Se comprueba que haya un segmento de memoria compartido con la clave pasada como parametro
+		// en caso contrario lo asigna
+		else{
+			// Datos del item
+			nwItem->type = SHARED_MEM;
+			nwItem->data.file_name = NULL;
+			nwItem->data.file_descriptor = 0;
+
+			if((nwItem->data.key = (key_t)strtoul(args[2], NULL, 10))==0 || ObtenerMemoriaShmget(nwItem->data.key, nwItem->size, nwItem) == NULL){
+				printf("Imposible asignar memoria compartida clave %lu:%s\n", (unsigned long) nwItem->data.key, strerror(errno));
+				return 1;
+			}
+
+			printf("Memoria compartida de clave %lu  en %p\n", (unsigned long) nwItem->size, nwItem->dir);
+		}
+
+	}else if(strcmp(args[1], "-mmap")==0){
 		// Code
-	}else if(strcmp(args[0], "-createshared")==0){
-		// Code
-	}else if(strcmp(args[0], "-shared")==0){
-		// Code
-	}else if(strcmp(args[0], "-mmap")==0){
-		// COde
 	}else
-		if(lenArg!=1) printf("uso: allocate %s ....\n", cmd_help[ctpos].cmd_pharams);
+		if(lenArg>1) printf("uso: allocate %s ....\n", cmd_help[ctpos].cmd_pharams);
 
 	return 1;
 }
 
 int cmdDeallocate(const int lenArg, char *args[PHARAM_LEN]){
-	// Code
+	memory_item *infoData;
+	size_t tam;
+	Lpos auxPos;
+
+	if(lenArg==1)
+		print_memList(NOT_DEFINED);
+
+	else if(strcmp(args[1], "-malloc")==0){
+		// En caso de que se pasen solo dos parametros, se muestra la lista solo con las reservas malloc
+		if(lenArg==2)
+			print_memList(MALLOC_MEM);
+
+		// Se livera el primer bloque reservado de la memoria y se elimina de la lista
+		else{
+			// Comprobante de que se intenta hacer una reserva de 0 bytes
+			if((tam = (size_t)strtoul(args[2], NULL, 10))==0){
+				printf("No se asignan bloques de 0 bytes\n");
+				return 1;
+			}
+			
+			// Recorremos la lista hasta el primer bloque de memoria asignado con ese tamaño
+			for(auxPos = firstElement(memoryList); auxPos!=NULL; auxPos=nextElement(memoryList, auxPos)){
+				infoData = getElement(memoryList, auxPos);
+				if(infoData->type != MALLOC_MEM) continue;
+				if(infoData->size == tam)	break;
+			}
+
+			infoData = deletePosition(memoryList, auxPos);
+
+			// Eliminamos el elemento
+			free(infoData->dir);
+			infoData->size=0;
+			infoData->type=NOT_DEFINED;
+			infoData->data.key=0;
+			infoData->data.file_name=NULL;
+			infoData->data.file_descriptor=0;
+			free(infoData);
+		}
+
+	}else if(strcmp(args[1], "-shared")==0){
+		// En caso de pasar parametros incorrectos, se muestra la lista de memoria compartida
+		if(lenArg<=2)
+			print_memList(SHARED_MEM);
+
+		else{
+			// Code
+		}
+
+	}else if(strcmp(args[1], "-delkey")==0){
+		// En caso de pasar parametros incorrectos, se muestra la lista de memoria compartida
+		if(lenArg<=2)
+			print_memList(SHARED_MEM);
+
+		else{
+			// Code
+		}
+
+	}else if(strcmp(args[1], "-mmap")==0){
+		// Code
+
+	}else{
+		// Comprobar si el primer parametro es una dirección de memoria en la cual se ha mapeado alguna dirección
+	}
+
 	return 1;
 }
+/*
+typedef struct{
+	key_t key;				// Clave utilizada en share
+	char *file_name;		// Nombre del archivo utilizado en mmap
+	int file_descriptor;	// Redireccionadorutilizado en mmap
+} t_oinfo;
+// Estructura básica
+struct mem_table_data{
+	void *dir;				// Dirección de memoria
+	size_t size;			// Tamaño de la reserva
+	struct tm time;			// Tiempo de asignación
+	t_asign type;			// Tipo de asignación
+	t_oinfo data;			// Otra información
+};
+typedef struct mem_table_data memory_item;
+*/
 
 int cmdIo(const int lenArg, char *args[PHARAM_LEN]){
 	// Code
