@@ -32,6 +32,13 @@ A partir de la **práctica 2**, se puede hacer un comprobante entre comandos int
 make check
 ```
 
+## Index:
+
+* [Lab Assignment 0]["Lab Assignment 0"]
+* [Lab Assignment 1]["Lab Assignment 1"]
+* [Lab Assignment 2]["Lab Assignment 2"]
+* [Lab Assignment 3]["Lab Assignment 3"]
+
 ## Lab Assignment 0
 
 En esta práctica, se tomará contacto con el lenguaje C. Crearemos una shell interactiva, se añadirán comandos en las próximas prácticas o versiones de la shell. Nuestra shell se basará en cinco fases:
@@ -390,27 +397,27 @@ La función `recurse` tiene una array estático y dinámico del mismo tamaño (2
 | :----------- | :-------------------------------- | :------------------------------------------------------------------------------------------------------- |
 | `allocate`   |                                   | Reserva un bloque de memoria                                                                             |
 |              | `-malloc` `tam`                   | Asigna un bloque malloc de tamano `tam`, en caso de no declarar `tam` se muestra la lista, de los malloc |
-|              | `-createshared` `cl` `tam`        | Asigna (creando) el bloque de memoria compartida de clave `cl` y tamano `tam`                        |
-|              | `-shared` `cl`                    | Asigna el bloque de memoria compartida (ya existente) de clave `cl`                                  |
-|              | `-mmap` `fich` `perm`             | Mapea el fichero `fich`, `perm` son los permisos                                                     |
-| `deallocate` |                                   | Livera un bloque de memoria                                                                          |
-|              | `-malloc` `tam`                   | Desasigna el bloque malloc de tamano `tam`                                                           |
-|              | `-shared` `cl`                    | Desasigna (desmapea) el bloque de memoria compartida de clave `cl`                                   |
-|              | `-delkey` `cl`                    | Elimina del sistema (sin desmapear) la clave de memoria `cl`                                         |
-|              | `-mmap` `fich`                    | Desmapea el fichero mapeado `fich`                                                                   |
-|              | `addr`                            | Desasigna el bloque de memoria en la direccion `addr`                                                |
-| `i-o`        |                                   | Realiza entrada y salida desde disco y viceversa                                                     |
-|              | `read` `fich` `addr` `cont`       | Lee `cont` bytes desde `fich` a `addr`                                                               |
-|              | `write` [-o] `fich` `addr` `cont` | Escribe `cont` bytes desde `addr` a fich. *[-o para sobreescribir]* (addr es una direccion de memoria) |
-| `memdump`    | `addr` `cont`                     | Vuelca en pantallas los contenidos (`cont` bytes) de la posicion de memoria `addr`                   |
-| `memfill`    | `addr` `cont` `byte`              | Llena la memoria a partir de `addr` con `byte`                                                       |
-| `memory`     |                                   | Muestra detalles de la memoria del proceso                                                           |
-|              | `-blocks`                         | Los bloques de memoria asignados                                                                     |
-|              | `-funcs`                          | Las direcciones de las funciones                                                                     |
-|              | `-vars`                           | Las direcciones de las variables                                                                     |
-|              | `:-all`                           | Todo                                                                                                 |
-|              | `-pmap`                           | Muestra la salida del comando pmap(o similar)                                                        |
-| `recurse`    | [n]                               | Invoca a la funcion recursiva `n` veces                                                              |
+|              | `-createshared` `cl` `tam`        | Asigna (creando) el bloque de memoria compartida de clave `cl` y tamano `tam`                            |
+|              | `-shared` `cl`                    | Asigna el bloque de memoria compartida (ya existente) de clave `cl`                                      |
+|              | `-mmap` `fich` `perm`             | Mapea el fichero `fich`, `perm` son los permisos                                                         |
+| `deallocate` |                                   | Livera un bloque de memoria                                                                              |
+|              | `-malloc` `tam`                   | Desasigna el bloque malloc de tamano `tam`                                                               |
+|              | `-shared` `cl`                    | Desasigna (desmapea) el bloque de memoria compartida de clave `cl`                                       |
+|              | `-delkey` `cl`                    | Elimina del sistema (sin desmapear) la clave de memoria `cl`                                             |
+|              | `-mmap` `fich`                    | Desmapea el fichero mapeado `fich`                                                                       |
+|              | `addr`                            | Desasigna el bloque de memoria en la direccion `addr`                                                    |
+| `i-o`        |                                   | Realiza entrada y salida desde disco y viceversa                                                         |
+|              | `read` `fich` `addr` `cont`       | Lee `cont` bytes desde `fich` a `addr`                                                                   |
+|              | `write` [-o] `fich` `addr` `cont` | Escribe `cont` bytes desde `addr` a fich. *[-o para sobreescribir]* (addr es una direccion de memoria)   |
+| `memdump`    | `addr` `cont`                     | Vuelca en pantallas los contenidos (`cont` bytes) de la posicion de memoria `addr`                       |
+| `memfill`    | `addr` `cont` `byte`              | Llena la memoria a partir de `addr` con `byte`                                                           |
+| `memory`     |                                   | Muestra detalles de la memoria del proceso                                                               |
+|              | `-blocks`                         | Los bloques de memoria asignados                                                                         |
+|              | `-funcs`                          | Las direcciones de las funciones                                                                         |
+|              | `-vars`                           | Las direcciones de las variables                                                                         |
+|              | `:-all`                           | Todo                                                                                                     |
+|              | `-pmap`                           | Muestra la salida del comando pmap(o similar)                                                            |
+| `recurse`    | [n]                               | Invoca a la funcion recursiva `n` veces                                                                  |
 
 ### Clues
 
