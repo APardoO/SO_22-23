@@ -34,7 +34,7 @@ make check
 
 ## Index:
 
-* [Lab Assignment 0]("Lab-Assignment-0")
+* [Lab Assignment 0]("#Lab-Assignment-0")
 * [Lab Assignment 1][./README.md "Lab Assignment 1"]
 * [Lab Assignment 2][./README.md "Lab Assignment 2"]
 * [Lab Assignment 3]
