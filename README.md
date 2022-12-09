@@ -34,12 +34,12 @@ make check
 
 ## Index:
 
-* [Lab Assignment 0][./README.md "Lab Assignment 0"]
+* [Lab Assignment 0]("Lab-Assignment-0")
 * [Lab Assignment 1][./README.md "Lab Assignment 1"]
 * [Lab Assignment 2][./README.md "Lab Assignment 2"]
-* [Lab Assignment 3](./README.md "Lab Assignment 3")
+* [Lab Assignment 3]
 
-## Lab Assignment 0
+## <a name="Lab-Assignment-0">Lab Assignment 0</a>
 
 En esta práctica, se tomará contacto con el lenguaje C. Crearemos una shell interactiva, se añadirán comandos en las próximas prácticas o versiones de la shell. Nuestra shell se basará en cinco fases:
 
