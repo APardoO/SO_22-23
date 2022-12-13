@@ -11,10 +11,10 @@ void process_dir_data(const char *name, short recap, short recbp, short hidp, sh
 void list_fd_data(const char *name, const struct stat *std, short recap, short recbp, short hidp, short longp, short accp, short linkp);	// Comprueba de qiue forma procesar y mostrar los datos de un directorio u archivo
 
 // ===== Programas propios de la shell =====
-int cmdCreate(const int lenArg, char *args[PHARAM_LEN], List historicList, List memoryList, List processList);
-int cmdStat(const int lenArg, char *args[PHARAM_LEN], List historicList, List memoryList, List processList);
-int cmdList(const int lenArg, char *args[PHARAM_LEN], List historicList, List memoryList, List processList);
-int cmdDelete(const int lenArg, char *args[PHARAM_LEN], List historicList, List memoryList, List processList);
-int cmdDeltree(const int lenArg, char *args[PHARAM_LEN], List historicList, List memoryList, List processList);
+int cmdCreate(const int lenArg, char *args[PHARAM_LEN], char *envp[], List historicList, List memoryList, List processList);
+int cmdStat(const int lenArg, char *args[PHARAM_LEN], char *envp[], List historicList, List memoryList, List processList);
+int cmdList(const int lenArg, char *args[PHARAM_LEN], char *envp[], List historicList, List memoryList, List processList);
+int cmdDelete(const int lenArg, char *args[PHARAM_LEN], char *envp[], List historicList, List memoryList, List processList);
+int cmdDeltree(const int lenArg, char *args[PHARAM_LEN], char *envp[], List historicList, List memoryList, List processList);
 
 #endif //_P1_H_

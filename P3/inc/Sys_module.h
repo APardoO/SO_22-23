@@ -24,7 +24,7 @@
 // Tabla de programas de la shell
 struct cmd_data{
 	char *cmd_name;
-	int (*cmd_func)(const int argLen, char *args[PHARAM_LEN], List historicList, List memoryList, List processList);
+	int (*cmd_func)(const int argLen, char *args[PHARAM_LEN], char *envp[], List historicList, List memoryList, List processList);
 };
 
 // Tabla para la ayuda de los comandos
@@ -32,6 +32,12 @@ struct cmd_help_data{
 	char *cmd_name;
 	char *cmd_pharams;
 	char *cmd_usage;
+};
+
+// Las siguientes funciones nos permiten obtener el nombre de una senal a partir del número y viceversa
+struct SEN{
+	char *sen;
+	int senal;
 };
 
 // Tipo de asignación de la memoria
@@ -53,7 +59,7 @@ typedef struct{
 
 // ==== Métodos del sistema ====
 void freed_list_memory(List historicList, List memoryList, List processList);															// Liverar la memoria de las listas
-/*[!]*/int executeCommand(const int numTrozos, char *tokens[PHARAM_LEN], List historicList, List memoryList, List processList);			// Método que ejecuta el comando introducido por el usuario
+/*[!]*/int executeCommand(const int numTrozos, char *tokens[PHARAM_LEN], char *envp[], List historicList, List memoryList, List processList);			// Método que ejecuta el comando introducido por el usuario
 void controled_exit(List historicList, List memoryList, List processList, int exitCode);												// Crea una salida controlada de la terminal
 int TrocearCadena(char *line, char *tokens[]);																							// Sepra el comando introducido en parametros, usando como delimitador espacios, saltos de línea y tabuladores
 void check_init_lists(List historicList, List memoryList, List processList);															// Comprobar que las listas están inicializadas
@@ -66,30 +72,33 @@ void getCmdLine(char linea[COMMAND_BUFFER], int *argLen, char *args[PHARAM_LEN],
 // Devuelven tipos concretos y hacen funciones auxiliares específicas
 
 // ==== P0 ====
-struct tm currentTime();										// Devuelve una estructura con la fecha actual
-char *currentDirectory();										// Devuelve un string con el directorio actual, NULL en caso de que no exista
-char *currentDate(char *format);								// Devuelve string con la fecha actual
-char *currentHour(char *format);								// Devuelve un puntero a string con la hora actual
+struct tm currentTime();																// Devuelve una estructura con la fecha actual
+char *currentDirectory();																// Devuelve un string con el directorio actual, NULL en caso de que no exista
+char *currentDate(char *format);														// Devuelve string con la fecha actual
+char *currentHour(char *format);														// Devuelve un puntero a string con la hora actual
 
 // ==== P1 ====
-int isDir(const char *path);									// Comprueba si el path es un directorio válido
-char LetraTF(mode_t m);											// Codigo de ejemplo p1
-char * ConvierteModo2(mode_t m);								// Codigo de ejemplo p1
+int isDir(const char *path);															// Comprueba si el path es un directorio válido
+char LetraTF(mode_t m);																	// Codigo de ejemplo p1
+char * ConvierteModo2(mode_t m);														// Codigo de ejemplo p1
 
 // ==== P2 ====
-void * ObtenerMemoriaShmget(key_t clave, size_t tam, t_mem *item, List memoryList);	// Codigo de ejemplo p2
-void * MapearFichero(char * fichero, int protection, List memoryList);				// Codigo de ejemplo p2
-void Do_pmap();																		// Codigo de ejemplo p2
-char *t_asigntoa(t_asign asign);													// Devuelve un string con el tipo de reserva de memoria hecha
+void * ObtenerMemoriaShmget(key_t clave, size_t tam, t_mem *item, List memoryList);		// Codigo de ejemplo p2
+void * MapearFichero(char * fichero, int protection, List memoryList);					// Codigo de ejemplo p2
+void Do_pmap();																			// Codigo de ejemplo p2
+char *t_asigntoa(t_asign asign);														// Devuelve un string con el tipo de reserva de memoria hecha
 
-void do_DeallocateDelkey(char *args);							// Codigo de ejemplo p2
-void Recursiva(int n);											// Codigo de ejemplo p2
-int LeerFichero(char *fich, void *p, int n);					// Codigo de ejemplo p2
-int EscribirFichero(char *fich, void *p, int n);				// Codigo de ejemplo p2
-void LlenarMemoria(void *p, size_t cont, unsigned char byte);	// Codigo de ejemplo p2
-void freeMemoryListItem(void *data);							// Libera memoria de la lista de memoria
+void do_DeallocateDelkey(char *args);													// Codigo de ejemplo p2
+void Recursiva(int n);																	// Codigo de ejemplo p2
+int LeerFichero(char *fich, void *p, int n);											// Codigo de ejemplo p2
+int EscribirFichero(char *fich, void *p, int n);										// Codigo de ejemplo p2
+void LlenarMemoria(void *p, size_t cont, unsigned char byte);							// Codigo de ejemplo p2
+void freeMemoryListItem(void *data);													// Libera memoria de la lista de memoria
 
 // ==== P3 ====
-/*[!]*/void freeProcessListItem(void *data);							// Libera memoria de la lista de procesos
+/*[!]*/void freeProcessListItem(void *data);											// Libera memoria de la lista de procesos
+int BuscarVariable(char *var, char *e[]);												// Busca una variable en el entorno que se le pasa como parámetro
+
+int external_functionality(const int numTrozos, char *args[PHARAM_LEN], char *envp[]);	// Ejecuta un ejecutable externo de ls shell
 
 #endif //SYS_MODULE_H
