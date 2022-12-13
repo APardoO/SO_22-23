@@ -32,14 +32,12 @@ A partir de la **práctica 2**, se puede hacer un comprobante entre comandos int
 make check
 ```
 
-## Index:
+A partir de la **práctica 3**, se puede hacer un comprobante de comandos introducidos. A demás, se puede generar un directorio con archivos para la entrega llamado `delivery` ejecutando:
+```bash
+make delivery
+```
 
-* [Lab Assignment 0]("#Lab-Assignment-0")
-* [Lab Assignment 1][./README.md "Lab Assignment 1"]
-* [Lab Assignment 2][./README.md "Lab Assignment 2"]
-* [Lab Assignment 3]
-
-## <a name="Lab-Assignment-0">Lab Assignment 0</a>
+## Lab Assignment 0
 
 En esta práctica, se tomará contacto con el lenguaje C. Crearemos una shell interactiva, se añadirán comandos en las próximas prácticas o versiones de la shell. Nuestra shell se basará en cinco fases:
 
@@ -674,3 +672,5 @@ void Do_pmap(void){ /*sin argumentos*/
 	waitpid (pid,NULL,0);
 }
 ```
+
+## Lab Assignment 3
