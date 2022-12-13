@@ -1,3 +1,4 @@
+#define _GNU_SOURCE
 #include <errno.h>			// Librería de captador de errores
 #include <fcntl.h>			// Librería para operaciones con archivos
 #include <stdio.h>			// Librería estándar de entrada/salida
@@ -28,7 +29,7 @@ void freed_list_memory(List historicList, List memoryList, List processList){
 	deleteList(processList, freeProcessListItem);
 }
 // [!] Comprobar que es un comando ejecutable desde el path: *****
-int executeCommand(const int numTrozos, char *tokens[PHARAM_LEN], List historicList, List memoryList, List processList){
+int executeCommand(const int numTrozos, char *tokens[PHARAM_LEN], char *envp[], List historicList, List memoryList, List processList){
 	register int i=0;
 
 	// Comprobando comando no introducido
@@ -41,14 +42,14 @@ int executeCommand(const int numTrozos, char *tokens[PHARAM_LEN], List historicL
 	// Comprobando si es una posicion erronea
 	if(cmd_table[i].cmd_name!=NULL)
 
-		// Funcion no implementada
-		// [!] Comprobar que es un programa ejecutable -> Parh
+		// Función no implementada en la shell
 		if(cmd_table[i].cmd_func == NULL)
-			printf("[!] Error: %s\n", strerror(ENOSYS));
+			report_error_exit(ENOSYS);
 		else
-			return cmd_table[i].cmd_func(numTrozos, tokens, historicList, memoryList, processList);
+			return cmd_table[i].cmd_func(numTrozos, tokens, envp, historicList, memoryList, processList);
+	
 	else
-		return report_error_exit(ENOSYS);
+		return external_functionality(numTrozos, tokens, envp);
 	return SSUCC_EXIT;
 }
 void controled_exit(List historicList, List memoryList, List processList, int exitCode){
@@ -79,7 +80,8 @@ int report_error_exit(int errorCode){
 	return FSUCC_EXIT;
 }
 void printPrompt(int exitStatus){
-	printf("[%s]~$ ", (exitStatus==FSUCC_EXIT)? "✗" : "#");	// Prompt de la shell
+	printf("[%s]~$ ", (exitStatus==SSUCC_EXIT)? "✔" : "✗");	// Prompt de la shell
+	//printf("[#]~$ ");
 	//printf("-> ");	// Prompt de la shell de referencia
 }
 void getCmdLine(char linea[COMMAND_BUFFER], int *argLen, char *args[PHARAM_LEN], List historicList, List memoryList, List processList){
@@ -386,4 +388,50 @@ void LlenarMemoria(void *p, size_t cont, unsigned char byte){
 // [!] Crear cuando se cree el tipo de dato
 void freeProcessListItem(void *data){
 	// Una vez implementado el tipo de dato, picar el método
+}
+
+int BuscarVariable(char *var, char *e[]){
+	int pos=0;
+	char aux[PHARAM_LEN];
+	strcpy(aux,var);
+	strcat(aux,"=");
+  
+	while(e[pos]!=NULL)
+		if(!strncmp(e[pos],aux,strlen(aux)))
+			return(pos);
+		else
+			pos++;
+
+	errno=ENOENT;   // no hay tal variable
+	return(-1);
+}
+
+// Función de ejecución :: int execvpe(const char *file, char *const argv[], char *const envp[]);
+int external_functionality(const int numTrozos, char *args[PHARAM_LEN], char *envp[]){
+	register int i=0;
+	register char priorp=0, bgp=0;
+	int exitCode=0;
+	char *specific_environ[PHARAM_LEN];
+
+	// Coger el nuevo entorno
+	for(i=0; BuscarVariable(args[i], envp)!=-1; ++i)
+		specific_environ[i] = args[i];
+
+	// Comprobando los últimos
+	if(args[numTrozos-1][0]=='&'){
+		bgp=1;
+		args[numTrozos-1]=NULL;
+	}
+
+	printf("priorp=%d, bgp=%d\n", priorp, bgp);
+
+	// Ejecución del programa
+	exitCode = execvpe(args[i], args+i, (i==0)? envp : specific_environ);
+
+	// Comprobando la salida del programa
+	if(exitCode==-1){
+		printf("[!] Error: %s\n", strerror(errno));
+		return FSUCC_EXIT;
+	}
+	return SSUCC_EXIT;
 }
