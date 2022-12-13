@@ -301,7 +301,7 @@ t_mem *search_mem_pos(List memoryList, void *memdir){
 
 // ================ COMANDOS PRÁCTICA 2 ===============
 // [+] Se puede optimizar
-int cmdAllocate(const int lenArg, char *args[PHARAM_LEN], List historicList, List memoryList, List processList){
+int cmdAllocate(const int lenArg, char *args[PHARAM_LEN], char *envp[], List historicList, List memoryList, List processList){
 	const register short ctpos=16;
 	size_t size;
 	key_t key;
@@ -354,7 +354,7 @@ int cmdAllocate(const int lenArg, char *args[PHARAM_LEN], List historicList, Lis
 	return SSUCC_EXIT;
 }
 // [+] Se puede optimizar
-int cmdDeallocate(const int lenArg, char *args[PHARAM_LEN], List historicList, List memoryList, List processList){
+int cmdDeallocate(const int lenArg, char *args[PHARAM_LEN], char *envp[], List historicList, List memoryList, List processList){
 	size_t tam;
 	key_t llave;
 
@@ -401,7 +401,7 @@ int cmdDeallocate(const int lenArg, char *args[PHARAM_LEN], List historicList, L
 	return SSUCC_EXIT;
 }
 // [!] Fallos de memoria, comprobar las trazas
-int cmdIo(const int lenArg, char *args[PHARAM_LEN], List historicList, List memoryList, List processList){	// [!]
+int cmdIo(const int lenArg, char *args[PHARAM_LEN], char *envp[], List historicList, List memoryList, List processList){	// [!]
 	int t;
 	char *ptr;
 	
@@ -441,13 +441,13 @@ int cmdIo(const int lenArg, char *args[PHARAM_LEN], List historicList, List memo
     }
     return SSUCC_EXIT;
 }
-int cmdMemdump(const int lenArg, char *args[PHARAM_LEN], List historicList, List memoryList, List processList){
+int cmdMemdump(const int lenArg, char *args[PHARAM_LEN], char *envp[], List historicList, List memoryList, List processList){
 	if(lenArg<2) return FSUCC_EXIT;
 	print_memory_block((char *)strtol(args[1], NULL, 16), (args[2])? (int)strtol(args[2], NULL, 10) : -1, memoryList);
 	return SSUCC_EXIT;
 }
 // [+] Se puede optimizar
-int cmdMemfill(const int lenArg, char *args[PHARAM_LEN], List historicList, List memoryList, List processList){
+int cmdMemfill(const int lenArg, char *args[PHARAM_LEN], char *envp[], List historicList, List memoryList, List processList){
 	size_t size = (unsigned long)0;
 	unsigned char c = 'A';
 	void *addr=NULL;
@@ -477,7 +477,7 @@ int cmdMemfill(const int lenArg, char *args[PHARAM_LEN], List historicList, List
 	LlenarMemoria(infoData->dir, size, c);
 	return SSUCC_EXIT;
 }
-int cmdMemory(const int lenArg, char *args[PHARAM_LEN], List historicList, List memoryList, List processList){
+int cmdMemory(const int lenArg, char *args[PHARAM_LEN], char *envp[], List historicList, List memoryList, List processList){
 	register short blockp=0, funcp=0, varsp=0, allp=0, pmapp=0;
 	register int i=1;
 
@@ -520,7 +520,7 @@ int cmdMemory(const int lenArg, char *args[PHARAM_LEN], List historicList, List 
 
 	return SSUCC_EXIT;
 }
-int cmdRecurse(const int lenArg, char *args[PHARAM_LEN], List historicList, List memoryList, List processList){
+int cmdRecurse(const int lenArg, char *args[PHARAM_LEN], char *envp[], List historicList, List memoryList, List processList){
 	if(lenArg!=1) Recursiva(atoi(args[1]));
 	return SSUCC_EXIT;
 }

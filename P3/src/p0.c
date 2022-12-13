@@ -26,25 +26,25 @@ void printNcommands(int n, List historicList){
 }
 
 // ================ COMANDOS PRÁCTICA 0 ===============
-int cmdAutores(const int lenArg, char *args[PHARAM_LEN], List historicList, List memoryList, List processList){
+int cmdAutores(const int lenArg, char *args[PHARAM_LEN], char *envp[], List historicList, List memoryList, List processList){
 	if(lenArg==1)						printf("Adrian Pardo Martinez: adrian.pardo.martinez\nHugo Correa Blanco: hugo.correa.blanco\n");
 	else if(strcmp("-l", args[1])==0)	printf("adrian.pardo.martinez\nhugo.correa.blanco\n");
 	else if(strcmp("-n", args[1])==0)	printf("Adrian Pardo Martinez\nHugo Correa Blanco\n");
 	else								return report_error_exit(EINVAL);
 	return SSUCC_EXIT;
 }
-int cmdPid(const int lenArg, char *args[PHARAM_LEN], List historicList, List memoryList, List processList){
+int cmdPid(const int lenArg, char *args[PHARAM_LEN], char *envp[], List historicList, List memoryList, List processList){
 	if(lenArg==1)						printf("Pid de shell: %d\n", getppid());
 	else if(strcmp(args[1], "-p")==0)	printf("Pid del padre del shell: %d\n", getpid());
 	else								return report_error_exit(EINVAL);
 	return SSUCC_EXIT;
 }
-int cmdCarpeta(const int lenArg, char *args[PHARAM_LEN], List historicList, List memoryList, List processList){
+int cmdCarpeta(const int lenArg, char *args[PHARAM_LEN], char *envp[], List historicList, List memoryList, List processList){
 	if(lenArg==1)				printf("%s\n", currentDirectory());
 	else if(chdir(args[1])!=0)	return report_error_exit(ENOENT);
 	return SSUCC_EXIT;
 }
-int cmdFecha(const int lenArg, char *args[PHARAM_LEN], List historicList, List memoryList, List processList){
+int cmdFecha(const int lenArg, char *args[PHARAM_LEN], char *envp[], List historicList, List memoryList, List processList){
 	char *hourFormat="%02d:%02d:%02d", *dateFormat="%02d/%02d/%04d";
 	if(lenArg==1)						printf("%s\n%s\n", currentHour(hourFormat), currentDate(dateFormat));
 	else if(strcmp(args[1], "-d")==0)	printf("%s\n", currentDate(dateFormat));
@@ -52,7 +52,7 @@ int cmdFecha(const int lenArg, char *args[PHARAM_LEN], List historicList, List m
 	else								return report_error_exit(EINVAL);
 	return SSUCC_EXIT;
 }
-int cmdHist(const int lenArg, char *args[PHARAM_LEN], List historicList, List memoryList, List processList){
+int cmdHist(const int lenArg, char *args[PHARAM_LEN], char *envp[], List historicList, List memoryList, List processList){
 	if(lenArg==1){
 		printNcommands(-1, historicList);
 		return SSUCC_EXIT;
@@ -68,7 +68,7 @@ int cmdHist(const int lenArg, char *args[PHARAM_LEN], List historicList, List me
 
 	return SSUCC_EXIT;
 }
-int cmdComando(const int lenArg, char *args[PHARAM_LEN], List historicList, List memoryList, List processList){
+int cmdComando(const int lenArg, char *args[PHARAM_LEN], char *envp[], List historicList, List memoryList, List processList){
 	char linea[COMMAND_BUFFER]="";
 	int nCommand=0;
 	Lpos auxPos;
@@ -86,20 +86,20 @@ int cmdComando(const int lenArg, char *args[PHARAM_LEN], List historicList, List
 		printf("Ejecutando hist (%d): %s\n", nCommand, linea);
 
 		// Separar en trozos la cadena de texto introducida
-		return executeCommand(TrocearCadena(linea, args), args, historicList, memoryList, processList);
+		return executeCommand(TrocearCadena(linea, args), args, envp, historicList, memoryList, processList);
 	}
 
 	printNcommands(-1, historicList);
 	return SSUCC_EXIT;
 }
-int cmdInfosys(const int lenArg, char *args[PHARAM_LEN], List historicList, List memoryList, List processList){
+int cmdInfosys(const int lenArg, char *args[PHARAM_LEN], char *envp[], List historicList, List memoryList, List processList){
 	struct utsname systemData;
 	if(uname(&systemData)==-1)	return report_error_exit(ENODATA);
 	else
 		printf("%s (%s), OS: %s-%s-%s\n", systemData.nodename, systemData.machine, systemData.sysname, systemData.release, systemData.version);
 	return SSUCC_EXIT;
 }
-int cmdHelp(const int lenArg, char *args[PHARAM_LEN], List historicList, List memoryList, List processList){
+int cmdHelp(const int lenArg, char *args[PHARAM_LEN], char *envp[], List historicList, List memoryList, List processList){
 	register int i=0;
 	if(lenArg==2){
 		while(cmd_help[i].cmd_name!=NULL && strcmp(cmd_help[i].cmd_name, args[1])!=0)
@@ -116,6 +116,6 @@ int cmdHelp(const int lenArg, char *args[PHARAM_LEN], List historicList, List me
 	}
 	return SSUCC_EXIT;
 }
-int cmdExit(const int lenArg, char *args[PHARAM_LEN], List historicList, List memoryList, List processList){
+int cmdExit(const int lenArg, char *args[PHARAM_LEN], char *envp[], List historicList, List memoryList, List processList){
 	return SCSS_EXIT;
 }

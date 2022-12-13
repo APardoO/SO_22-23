@@ -137,7 +137,7 @@ void list_fd_data(const char *name, const struct stat *std, short recap, short r
 }
 
 // ================ COMANDOS PRÁCTICA 1 ===============
-int cmdCreate(const int lenArg, char *args[PHARAM_LEN], List historicList, List memoryList, List processList){
+int cmdCreate(const int lenArg, char *args[PHARAM_LEN], char *envp[], List historicList, List memoryList, List processList){
 	int fd;
 
 	if(lenArg>1){
@@ -152,7 +152,7 @@ int cmdCreate(const int lenArg, char *args[PHARAM_LEN], List historicList, List 
 		return report_error_exit(ENOENT);
 	return SSUCC_EXIT;
 }
-int cmdStat(const int lenArg, char *args[PHARAM_LEN], List historicList, List memoryList, List processList){
+int cmdStat(const int lenArg, char *args[PHARAM_LEN], char *envp[], List historicList, List memoryList, List processList){
 	struct stat std;
 	register int i=1;
 	short numFiles=0, longp=0, accp=0, linkp=0;
@@ -183,7 +183,7 @@ int cmdStat(const int lenArg, char *args[PHARAM_LEN], List historicList, List me
 	}
 	return SSUCC_EXIT;
 }
-int cmdList(const int lenArg, char *args[PHARAM_LEN], List historicList, List memoryList, List processList){
+int cmdList(const int lenArg, char *args[PHARAM_LEN], char *envp[], List historicList, List memoryList, List processList){
 	register int i=1;
 	short recap=0, recbp=0, hidp=0, longp=0, accp=0, linkp=0;
 	int numData=0;
@@ -221,7 +221,7 @@ int cmdList(const int lenArg, char *args[PHARAM_LEN], List historicList, List me
 	}
 	return SSUCC_EXIT;
 }
-int cmdDelete(const int lenArg, char *args[PHARAM_LEN], List historicList, List memoryList, List processList){
+int cmdDelete(const int lenArg, char *args[PHARAM_LEN], char *envp[], List historicList, List memoryList, List processList){
 	if(lenArg >1){		//Borra el archivo o la carpeta
 		for(register int i=1; i<lenArg; i++)
 			if(remove(args[i]) != 0)
@@ -231,7 +231,7 @@ int cmdDelete(const int lenArg, char *args[PHARAM_LEN], List historicList, List 
 		printf("%s\n", currentDirectory());
 	return SSUCC_EXIT;
 }
-int cmdDeltree(const int lenArg, char *args[PHARAM_LEN], List historicList, List memoryList, List processList){
+int cmdDeltree(const int lenArg, char *args[PHARAM_LEN], char *envp[], List historicList, List memoryList, List processList){
     if(lenArg >1){
         for(register int i=1; i<lenArg; i++){
             if(isDir(args[i])){
