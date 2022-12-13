@@ -13,6 +13,7 @@
 //#include <fcntl.h>			// Librería para operaciones con archivos
 //#include <stdio.h>			// Librería estándar de entrada/salida
 //#include <dirent.h>			// Librería que importa las entradas de directorios
+#include <signal.h>			// Señales de shell
 //#include <stdlib.h>			// Librería de conversión, memoria, procesos...
 //#include <string.h>			// Librería de tratamiento de "strings"
 //#include <unistd.h>			// Librería de funcionalidades del sistema
@@ -22,6 +23,7 @@
 //#include <sys/wait.h>		// Incluye funciones wait
 //#include <sys/types.h>		// Obtiene los tipos de datos del sistema
 //#include <sys/utsname.h>	// Obtiene informacñon del sistema [LINUX]
+
 
 //#include "List.h"			// Librería con las funcionalidades de la lista
 //#include "Sys_module.h"		// Ĺibrería de la shell con métodos específicos de cada práctica
@@ -58,7 +60,7 @@ struct cmd_data cmd_table[] = {
 	{"allocate", cmdAllocate},
 	{"deallocate", cmdDeallocate},
 	{"i-o", cmdIo},
-	{"e-s", cmdIo},		// NO contemplada por la documentacion pero sí por la shell de referencia
+	{"e-s", cmdIo},
 	{"memdump", cmdMemdump},
 	{"memfill", cmdMemfill},
 	{"memory", cmdMemory},
@@ -77,6 +79,7 @@ struct cmd_data cmd_table[] = {
 
 	{NULL, NULL}
 };
+
 // Tabla para la ayuda de los comandos
 struct cmd_help_data cmd_help[] = {
 	// P0
@@ -123,8 +126,80 @@ struct cmd_help_data cmd_help[] = {
 	{NULL, NULL, NULL}
 };
 
+// Tabla con las señales
+struct SEN sigstrnum[]={   
+	{"HUP", SIGHUP},
+	{"INT", SIGINT},
+	{"QUIT", SIGQUIT},
+	{"ILL", SIGILL}, 
+	{"TRAP", SIGTRAP},
+	{"ABRT", SIGABRT},
+	{"IOT", SIGIOT},
+	{"BUS", SIGBUS},
+	{"FPE", SIGFPE},
+	{"KILL", SIGKILL},
+	{"USR1", SIGUSR1},
+	{"SEGV", SIGSEGV},
+	{"USR2", SIGUSR2}, 
+	{"PIPE", SIGPIPE},
+	{"ALRM", SIGALRM},
+	{"TERM", SIGTERM},
+	{"CHLD", SIGCHLD},
+	{"CONT", SIGCONT},
+	{"STOP", SIGSTOP},
+	{"TSTP", SIGTSTP}, 
+	{"TTIN", SIGTTIN},
+	{"TTOU", SIGTTOU},
+	{"URG", SIGURG},
+	{"XCPU", SIGXCPU},
+	{"XFSZ", SIGXFSZ},
+	{"VTALRM", SIGVTALRM},
+	{"PROF", SIGPROF},
+	{"WINCH", SIGWINCH}, 
+	{"IO", SIGIO},
+	{"SYS", SIGSYS},
+	/*senales que no hay en todas partes*/
+#ifdef SIGPOLL
+	{"POLL", SIGPOLL},
+#endif
+#ifdef SIGPWR
+	{"PWR", SIGPWR},
+#endif
+#ifdef SIGEMT
+	{"EMT", SIGEMT},
+#endif
+#ifdef SIGINFO
+	{"INFO", SIGINFO},
+#endif
+#ifdef SIGSTKFLT
+	{"STKFLT", SIGSTKFLT},
+#endif
+#ifdef SIGCLD
+	{"CLD", SIGCLD},
+#endif
+#ifdef SIGLOST
+	{"LOST", SIGLOST},
+#endif
+#ifdef SIGCANCEL
+	{"CANCEL", SIGCANCEL},
+#endif
+#ifdef SIGTHAW
+	{"THAW", SIGTHAW},
+#endif
+#ifdef SIGFREEZE
+	{"FREEZE", SIGFREEZE},
+#endif
+#ifdef SIGLWP
+	{"LWP", SIGLWP},
+#endif
+#ifdef SIGWAITING
+	{"WAITING", SIGWAITING},
+#endif
+	{NULL,-1},
+};
+
 /* ==== MAIN FUNCTION ==== */
-int main(int argc, char const *argv[]){
+int main(int argc, char const *argv[], char *envp[]){
 	int argLen=0;							// Número de parametros del comadno introducido
 	int exitCode=SSUCC_EXIT;				// Código de salida de los comandos
 	char *args[PHARAM_LEN];					// Parámetros del comando introducido
@@ -142,7 +217,7 @@ int main(int argc, char const *argv[]){
 	do{
 		printPrompt(exitCode);
 		getCmdLine(linea, &argLen, args, historicList, memoryList, processList);
-		exitCode = executeCommand(argLen, args, historicList, memoryList, processList);
+		exitCode = executeCommand(argLen, args, envp, historicList, memoryList, processList);
 	}while(exitCode != SCSS_EXIT);
 
 	// Liberar la memoria de las lista
