@@ -1,4 +1,5 @@
 #define _GNU_SOURCE
+#define _XOPEN_SOURCE_EXTENDED 1
 #include <errno.h>			// Librería de captador de errores
 #include <fcntl.h>			// Librería para operaciones con archivos
 #include <stdio.h>			// Librería estándar de entrada/salida
@@ -10,6 +11,7 @@
 #include <sys/stat.h>		// Obtener información de los archivos
 #include <sys/wait.h>		// Incluye funciones wait
 #include <sys/types.h>		// Obtiene los tipos de datos del sistema
+	
 
 #include "List.h"			// Librería con las funcionalidades de la lista
 #include "Sys_module.h"		// Ĺibrería de la shell con métodos específicos de cada práctica
@@ -405,6 +407,25 @@ int BuscarVariable(char *var, char *e[]){
 	errno=ENOENT;   // no hay tal variable
 	return(-1);
 }
+
+int CambiarVariable(char * var, char * valor, char *e[]) /*cambia una variable en el entorno que se le pasa como parámetro*/
+{                                                        /*lo hace directamente, no usa putenv*/
+  int pos;
+  char *aux;
+   
+  if ((pos=BuscarVariable(var,e))==-1)
+    return(-1);
+ 
+  if ((aux=(char *)malloc(strlen(var)+strlen(valor)+2))==NULL)
+	return -1;
+  strcpy(aux,var);
+  strcat(aux,"=");
+  strcat(aux,valor);
+  e[pos]=aux;
+  return (pos);
+}
+
+
 
 // Función de ejecución :: int execvpe(const char *file, char *const argv[], char *const envp[]);
 int external_functionality(const int numTrozos, char *args[PHARAM_LEN], char *envp[]){
