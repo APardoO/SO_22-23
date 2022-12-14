@@ -1,4 +1,3 @@
-#define _GNU_SOURCE
 #include <errno.h>			// Librería de captador de errores
 #include <fcntl.h>			// Librería para operaciones con archivos
 #include <stdio.h>			// Librería estándar de entrada/salida
@@ -14,6 +13,8 @@
 #include "List.h"			// Librería con las funcionalidades de la lista
 #include "Sys_module.h"		// Ĺibrería de la shell con métodos específicos de cada práctica
 
+#include "p3.h"				// Librería con las cabeceras de la práctica 3
+
 extern struct cmd_data cmd_table[];
 extern struct cmd_help_data cmd_help[];
 
@@ -28,7 +29,6 @@ void freed_list_memory(List historicList, List memoryList, List processList){
 	// Elimina la lista de memoria
 	deleteList(processList, freeProcessListItem);
 }
-// [!] Comprobar que es un comando ejecutable desde el path: *****
 int executeCommand(const int numTrozos, char *tokens[PHARAM_LEN], char *envp[], List historicList, List memoryList, List processList){
 	register int i=0;
 
@@ -49,7 +49,7 @@ int executeCommand(const int numTrozos, char *tokens[PHARAM_LEN], char *envp[], 
 			return cmd_table[i].cmd_func(numTrozos, tokens, envp, historicList, memoryList, processList);
 	
 	else
-		return external_functionality(numTrozos, tokens, envp);
+		return external_functionality(numTrozos, tokens, envp, historicList, memoryList, processList);
 	return SSUCC_EXIT;
 }
 void controled_exit(List historicList, List memoryList, List processList, int exitCode){
@@ -390,6 +390,16 @@ void freeProcessListItem(void *data){
 	// Una vez implementado el tipo de dato, picar el método
 }
 
+char *t_stattoa(t_pstat stat){
+	static char asign_name[9];
+	strcpy(asign_name, "unknown ");
+	if(stat == FINISHED)	strcpy(asign_name, "finished");
+	if(stat == STOPPED)		strcpy(asign_name, "stopped ");
+	if(stat == SIGNALED)	strcpy(asign_name, "signaled");
+	if(stat == ACTIVE)		strcpy(asign_name, "active  ");
+	return asign_name;
+}
+
 int BuscarVariable(char *var, char *e[]){
 	int pos=0;
 	char aux[PHARAM_LEN];
@@ -406,32 +416,17 @@ int BuscarVariable(char *var, char *e[]){
 	return(-1);
 }
 
-// Función de ejecución :: int execvpe(const char *file, char *const argv[], char *const envp[]);
-int external_functionality(const int numTrozos, char *args[PHARAM_LEN], char *envp[]){
-	register int i=0;
-	register char priorp=0, bgp=0;
-	int exitCode=0;
-	char *specific_environ[PHARAM_LEN];
+int external_functionality(const int argLen, char *args[PHARAM_LEN], char *envp[], List historicList, List memoryList, List processList){
+	pid_t pid;
 
-	// Coger el nuevo entorno
-	for(i=0; BuscarVariable(args[i], envp)!=-1; ++i)
-		specific_environ[i] = args[i];
+	// Si es el proceso hijo
+	if((pid=fork())==0){
+		cmdExecute(argLen, args, envp, historicList, memoryList, processList);
+		return SCSS_EXIT;	// Slida controlada de la shell
+	
+	// Proceso padre -> Esperamos a que el proceso hijo termine
+	}else if(pid != -1)
+		waitpid(pid, NULL, 0);
 
-	// Comprobando los últimos
-	if(args[numTrozos-1][0]=='&'){
-		bgp=1;
-		args[numTrozos-1]=NULL;
-	}
-
-	printf("priorp=%d, bgp=%d\n", priorp, bgp);
-
-	// Ejecución del programa
-	exitCode = execvpe(args[i], args+i, (i==0)? envp : specific_environ);
-
-	// Comprobando la salida del programa
-	if(exitCode==-1){
-		printf("[!] Error: %s\n", strerror(errno));
-		return FSUCC_EXIT;
-	}
 	return SSUCC_EXIT;
 }
