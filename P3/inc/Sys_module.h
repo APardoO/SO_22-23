@@ -4,7 +4,7 @@
 #include <time.h>					// Librería de tiempo del sistema
 #include <sys/types.h>				// Obtiene los tipos de datos del sistema
 
-#include "List.h"
+#include "List.h"					// Librería con las funcionalidades de la lista
 
 // Definiciones globales de la shell
 #define PHARAM_LEN			512		// Longitud de cada parametro
@@ -55,11 +55,22 @@ typedef struct{
 	int file_descriptor;	// Redireccionador utilizado en mmap
 } t_mem;
 
+// Tipo de estado de los procesos
+enum proc_stats {UNKNOWN, FINISHED, STOPPED, SIGNALED, ACTIVE};
+typedef enum proc_stats t_pstat;
+
 // Tipos de información almacenada en los items de la lista de procesos
+typedef struct{
+	pid_t pid;					// PID del nuevo proceso
+	struct tm time;				// Tiempo en el que se ha ejecutado el proceso
+	t_pstat status;				// Estado del proceso
+	char line[COMMAND_BUFFER];	// Linea que ejecuta este proceso
+	int priority;				// Prioridad del proceso
+} t_proc;
 
 // ==== Métodos del sistema ====
 void freed_list_memory(List historicList, List memoryList, List processList);															// Liverar la memoria de las listas
-/*[!]*/int executeCommand(const int numTrozos, char *tokens[PHARAM_LEN], char *envp[], List historicList, List memoryList, List processList);			// Método que ejecuta el comando introducido por el usuario
+int executeCommand(const int numTrozos, char *tokens[PHARAM_LEN], char *envp[], List historicList, List memoryList, List processList);	// Método que ejecuta el comando introducido por el usuario
 void controled_exit(List historicList, List memoryList, List processList, int exitCode);												// Crea una salida controlada de la terminal
 int TrocearCadena(char *line, char *tokens[]);																							// Sepra el comando introducido en parametros, usando como delimitador espacios, saltos de línea y tabuladores
 void check_init_lists(List historicList, List memoryList, List processList);															// Comprobar que las listas están inicializadas
@@ -97,8 +108,21 @@ void freeMemoryListItem(void *data);													// Libera memoria de la lista d
 
 // ==== P3 ====
 /*[!]*/void freeProcessListItem(void *data);											// Libera memoria de la lista de procesos
+char *t_stattoa(t_pstat stat);															// Devuelve un string con el tipo de estado del proceso generado
 int BuscarVariable(char *var, char *e[]);												// Busca una variable en el entorno que se le pasa como parámetro
 
-int external_functionality(const int numTrozos, char *args[PHARAM_LEN], char *envp[]);	// Ejecuta un ejecutable externo de ls shell
+int external_functionality(const int argLen, char *args[PHARAM_LEN], char *envp[], List historicList, List memoryList, List processList);	// Ejecuta un ejecutable externo de ls shell
+
+/*
+	En caso de que se ejecute en segundo plano -> Se añade a la lista de procesos
+
+	Retorno del fork():
+		Todo correcto:
+			-> Retorno al padre: PID del hijo
+			-> Retorno al hijo: 0
+		Existe algún error:
+			-> Retorno al padre: -1
+			-> (Hijo no creado)
+*/
 
 #endif //SYS_MODULE_H
