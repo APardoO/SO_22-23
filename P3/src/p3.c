@@ -1,3 +1,4 @@
+#define _GNU_SOURCE
 #include <grp.h>			// Aporta la definicion de datos de los grupos de linux
 #include <pwd.h>			// Aporta la definicion de datos de la estructura passwd
 #include <time.h>			// Librería de tiempo del sistema
@@ -74,7 +75,56 @@ int cmdFork(const int lenArg, char *args[PHARAM_LEN], char *envp[], List histori
 
 // [+] Hacer
 int cmdExecute(const int lenArg, char *args[PHARAM_LEN], char *envp[], List historicList, List memoryList, List processList){
-	// Code
+	register int i=1, j=1;
+	register char bgp=0;
+	char *specific_environ[PHARAM_LEN];
+	t_proc *nwItem=NULL;
+
+	// Si solo se llama a esta función
+	if(lenArg==1)
+		return report_error_exit(EFAULT);
+
+	// Coger el nuevo entorno
+	for(i=1; BuscarVariable(args[i], envp)!=-1; ++i)
+		specific_environ[i-1] = args[i];
+
+	// Comprobando la flag de prioridad
+
+	// Comprobando la flag de segundo plano
+	if(args[lenArg-1][0]=='&'){
+		if((nwItem = (t_proc *)malloc(sizeof(t_proc)))==NULL){
+			free(nwItem);
+			return report_error_exit(ENOMEM);
+		}
+
+		// Crear el item
+		nwItem->pid = getpid();
+		nwItem->time = currentTime();
+		nwItem->status = ACTIVE;
+		nwItem->priority = 0;
+
+		// Crear la línea pasada como parametro
+		for(j=1; j<lenArg; ++j){
+			strcpy(nwItem->line, args[j]);
+			if(j!=lenArg-1)
+				strcpy(nwItem->line, " ");
+		}
+
+		// Insertar en la lista de procesos el nuevo proceso
+		if(!insertElement(historicList, nwItem))
+			printf("[!] Error: %s\n", strerror(ENOMEM));
+
+		args[]
+
+		// Cambiar la flag a activo
+		bgp=1;
+		printf("[%s] => %d", nwItem->line, bgp);
+	}
+
+	// Ejecución del programa
+	if(execvpe(args[i], args+i, (i==0)? envp : specific_environ)==-1)
+		printf("[!] Error: %s\n", strerror(errno));
+
 	return SSUCC_EXIT;
 }
 
