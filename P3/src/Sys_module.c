@@ -1,3 +1,5 @@
+#define _GNU_SOURCE
+#define _XOPEN_SOURCE_EXTENDED 1
 #include <errno.h>			// Librería de captador de errores
 #include <fcntl.h>			// Librería para operaciones con archivos
 #include <stdio.h>			// Librería estándar de entrada/salida
@@ -9,6 +11,7 @@
 #include <sys/stat.h>		// Obtener información de los archivos
 #include <sys/wait.h>		// Incluye funciones wait
 #include <sys/types.h>		// Obtiene los tipos de datos del sistema
+
 
 #include "List.h"			// Librería con las funcionalidades de la lista
 #include "Sys_module.h"		// Ĺibrería de la shell con métodos específicos de cada práctica
@@ -47,7 +50,7 @@ int executeCommand(const int numTrozos, char *tokens[PHARAM_LEN], char *envp[], 
 			report_error_exit(ENOSYS);
 		else
 			return cmd_table[i].cmd_func(numTrozos, tokens, envp, historicList, memoryList, processList);
-	
+
 	else
 		return external_functionality(numTrozos, tokens, envp, historicList, memoryList, processList);
 	return SSUCC_EXIT;
@@ -67,7 +70,7 @@ int TrocearCadena(char *line, char *tokens[]){
 void check_init_lists(List historicList, List memoryList, List processList){
 	// Comprobamos que la lista del histórico está inicializada
 	if(historicList == NULL)	createList(&historicList);
-	
+
 	// Comprobamos que la lista de la memoria está inicializada
 	if(memoryList == NULL)		createList(&memoryList);
 
@@ -221,16 +224,16 @@ void * ObtenerMemoriaShmget(key_t clave, size_t tam, t_mem *item, List memoryLis
 		printf("La llave no sirve\n");
 		errno=EINVAL;
 		return NULL;
-	
+
 	}if((id=shmget(clave, tam, flags))==-1)
 		return (NULL);
 
 	if((p=shmat(id,NULL,0))==(void*)-1){
 		aux=errno;
-		
+
 		if(tam)
 			shmctl(id,IPC_RMID,NULL);
-		
+
 		errno=aux;
 		return (NULL);
 	}
@@ -245,7 +248,7 @@ void * ObtenerMemoriaShmget(key_t clave, size_t tam, t_mem *item, List memoryLis
 		free(item);
 		return (NULL);
 	}
-	
+
 	return (p);
 }
 void * MapearFichero(char * fichero, int protection, List memoryList){
@@ -278,10 +281,10 @@ void * MapearFichero(char * fichero, int protection, List memoryList){
 	return p;
 }
 void Do_pmap(){
-	pid_t pid;       
+	pid_t pid;
 	char elpid[32];
 	char *argv[4]={"pmap",elpid,NULL};
-   
+
 	sprintf(elpid,"%d", (int)getpid());
 
 	if((pid=fork())==-1){
@@ -293,17 +296,17 @@ void Do_pmap(){
 		if(execvp(argv[0],argv)==-1)
 			perror("cannot execute pmap (linux, solaris)");
 
-		argv[0]="procstat"; argv[1]="vm"; argv[2]=elpid; argv[3]=NULL;   
+		argv[0]="procstat"; argv[1]="vm"; argv[2]=elpid; argv[3]=NULL;
 		if(execvp(argv[0],argv)==-1)	//No hay pmap, probamos procstat FreeBSD
 			perror("cannot execute procstat (FreeBSD)");
-	
-		argv[0]="procmap",argv[1]=elpid;argv[2]=NULL;    
+
+		argv[0]="procmap",argv[1]=elpid;argv[2]=NULL;
 		if(execvp(argv[0],argv)==-1)	//probamos procmap OpenBSD
 			perror("cannot execute procmap (OpenBSD)");
 
 		argv[0]="vmmap"; argv[1]="-interleave"; argv[2]=elpid;argv[3]=NULL;
 		if(execvp(argv[0],argv)==-1)	//probamos vmmap Mac-OS
-			perror("cannot execute vmmap (Mac-OS)");      
+			perror("cannot execute vmmap (Mac-OS)");
 		exit(1);
 	}
 	waitpid(pid,NULL,0);
@@ -377,10 +380,10 @@ int EscribirFichero(char *fich, void *p, int n){
 void LlenarMemoria(void *p, size_t cont, unsigned char byte){
   unsigned char *arr = (unsigned char *)p;
   size_t i;
-  
+
   for (i=0; i<cont;i++)
 		arr[i]=byte;
-  
+
   printf("Llenando %ld bytes de memoria con el byte %d(\'%c\') a partir de la direccion %p\n", (unsigned long) cont, byte, byte, p);
 }
 
@@ -405,7 +408,7 @@ int BuscarVariable(char *var, char *e[]){
 	char aux[PHARAM_LEN];
 	strcpy(aux,var);
 	strcat(aux,"=");
-  
+
 	while(e[pos]!=NULL)
 		if(!strncmp(e[pos],aux,strlen(aux)))
 			return(pos);
@@ -416,6 +419,22 @@ int BuscarVariable(char *var, char *e[]){
 	return(-1);
 }
 
+int CambiarVariable(char *var, char *valor, char *e[]){
+	int pos;
+	char *aux;
+
+	if((pos=BuscarVariable(var,e))==-1)
+		return(-1);
+
+	if((aux=(char *)malloc(strlen(var)+strlen(valor)+2))==NULL)
+		return -1;
+	strcpy(aux,var);
+	strcat(aux,"=");
+	strcat(aux,valor);
+	e[pos]=aux;
+	return (pos);
+}
+
 int external_functionality(const int argLen, char *args[PHARAM_LEN], char *envp[], List historicList, List memoryList, List processList){
 	pid_t pid;
 
@@ -423,7 +442,7 @@ int external_functionality(const int argLen, char *args[PHARAM_LEN], char *envp[
 	if((pid=fork())==0){
 		cmdExecute(argLen, args, envp, historicList, memoryList, processList);
 		return SCSS_EXIT;	// Slida controlada de la shell
-	
+
 	// Proceso padre -> Esperamos a que el proceso hijo termine
 	}else if(pid != -1)
 		waitpid(pid, NULL, 0);

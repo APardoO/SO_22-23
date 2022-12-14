@@ -33,22 +33,68 @@ int print_environ_values(char *env[], char *env_type){
 }
 
 // ==================== PRÁCTICA 3 ====================
-// [+] Hacer
+// [✔] Hecha
 int cmdPriority(const int lenArg, char *args[PHARAM_LEN], char *envp[], List historicList, List memoryList, List processList){
-	// Code
-	return SSUCC_EXIT;
+	
+	int priority, pid;
+    if(lenArg >1){
+        pid=atoi(args[1]);
+        if(lenArg ==2){
+            priority=getpriority(PRIO_PROCESS,pid);
+        }else{
+            priority=atoi(args[2]);
+            setpriority(PRIO_PROCESS, pid, priority);
+        }
+    }else{
+        pid=getpid();
+        priority=getpriority(PRIO_PROCESS,pid);
+    }
+    printf("El proceso %d tiene prioridad %d\n", pid, priority);
+    
+    return SSUCC_EXIT;
 }
 
-// [+] Hacer
+// [✔] Hecha
 int cmdShowvar(const int lenArg, char *args[PHARAM_LEN], char *envp[], List historicList, List memoryList, List processList){
-	// Code
-	return SSUCC_EXIT;
+	
+	int pos;
+    if(lenArg>1){
+        if((pos=BuscarVariable(args[1],environ))==-1){
+            perror("Imposible encontrar variable");
+            return FSUCC_EXIT;
+        }
+        printf("Con arg3 main %s(%p) @%p\n",environ[pos],environ[pos],&envp[pos]);
+        printf("  Con environ %s(%p) @%p\n",environ[pos],environ[pos],&environ[pos]);
+        printf("   Con getenv %s(%p)\n",getenv(args[0]),&environ[pos]);
+    }
+    else{
+        cmdShowenv(1,0,envp,historicList,memoryList,processList);}
+    
+    return SSUCC_EXIT;
 }
 
-// [+] Hacer
+// [✔] Hecha
 int cmdChangevar(const int lenArg, char *args[PHARAM_LEN], char *envp[], List historicList, List memoryList, List processList){
-	// Code
-	return SSUCC_EXIT;
+	char *aux=malloc(MAX_PATH);
+    if(lenArg>1){
+        if(lenArg==4){
+            if(strcmp(args[1],"-a")==0){
+                CambiarVariable(args[2],args[3],envp);
+            }else if(strcmp(args[1],"-e")==0){
+                CambiarVariable(args[2],args[3],environ);
+            }else if(strcmp(args[1],"-p")==0){
+                strcpy(aux,args[2]);
+                strcat(aux,"=");
+                strcat(aux,(args[3]));
+                putenv(aux);
+            }else
+                printf("Uso: cambiarvar [-a|-e|-p] var valor\n");
+        }else
+            printf("Uso: cambiarvar [-a|-e|-p] var valor\n");
+    }else
+        printf("Uso: cambiarvar [-a|-e|-p] var valor\n");
+    
+    return SSUCC_EXIT;
 }
 
 // [✔] Hecha
@@ -67,9 +113,15 @@ int cmdShowenv(const int lenArg, char *args[PHARAM_LEN], char *envp[], List hist
 	return FSUCC_EXIT;
 }
 
-// [+] Hacer
+// [✔] Hecha
 int cmdFork(const int lenArg, char *args[PHARAM_LEN], char *envp[], List historicList, List memoryList, List processList){
-	// Code
+	int pid=fork();
+	if(pid==0)
+		printf("ejecutando proceso %d\n",getpid());
+	else if(pid==-1){
+		perror("[!] Error: fork no posible");
+		return FSUCC_EXIT;}
+	else waitpid(pid,NULL,0);
 	return SSUCC_EXIT;
 }
 

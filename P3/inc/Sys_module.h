@@ -3,6 +3,7 @@
 
 #include <time.h>					// Librería de tiempo del sistema
 #include <sys/types.h>				// Obtiene los tipos de datos del sistema
+#include <sys/resource.h>			// Libreria para prioridades
 
 #include "List.h"					// Librería con las funcionalidades de la lista
 
@@ -110,6 +111,7 @@ void freeMemoryListItem(void *data);													// Libera memoria de la lista d
 /*[!]*/void freeProcessListItem(void *data);											// Libera memoria de la lista de procesos
 char *t_stattoa(t_pstat stat);															// Devuelve un string con el tipo de estado del proceso generado
 int BuscarVariable(char *var, char *e[]);												// Busca una variable en el entorno que se le pasa como parámetro
+int CambiarVariable(char *var, char *valor, char *e[]);									// Cambia una variable en el entorno que se le pasa como parámetro lo hace directamente, no usa putenv
 
 int external_functionality(const int argLen, char *args[PHARAM_LEN], char *envp[], List historicList, List memoryList, List processList);	// Ejecuta un ejecutable externo de ls shell
 
