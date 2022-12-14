@@ -166,7 +166,7 @@ int cmdExecute(const int lenArg, char *args[PHARAM_LEN], char *envp[], List hist
 		if(!insertElement(historicList, nwItem))
 			printf("[!] Error: %s\n", strerror(ENOMEM));
 
-		args[]
+		args[lenArg-1]=NULL;
 
 		// Cambiar la flag a activo
 		bgp=1;
