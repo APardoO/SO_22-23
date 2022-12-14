@@ -3,7 +3,7 @@
 
 #include <time.h>					// Librería de tiempo del sistema
 #include <sys/types.h>				// Obtiene los tipos de datos del sistema
-
+#include <sys/resource.h>			//Libreria para prioridades
 #include "List.h"
 
 // Definiciones globales de la shell
@@ -98,6 +98,8 @@ void freeMemoryListItem(void *data);													// Libera memoria de la lista d
 // ==== P3 ====
 /*[!]*/void freeProcessListItem(void *data);											// Libera memoria de la lista de procesos
 int BuscarVariable(char *var, char *e[]);												// Busca una variable en el entorno que se le pasa como parámetro
+
+int CambiarVariable(char * var, char * valor, char *e[]);
 
 int external_functionality(const int numTrozos, char *args[PHARAM_LEN], char *envp[]);	// Ejecuta un ejecutable externo de ls shell
 
