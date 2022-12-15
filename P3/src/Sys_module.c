@@ -395,11 +395,11 @@ void freeProcessListItem(void *data){
 
 char *t_stattoa(t_pstat stat){
 	static char asign_name[9];
-	strcpy(asign_name, "unknown ");
-	if(stat == FINISHED)	strcpy(asign_name, "finished");
-	if(stat == STOPPED)		strcpy(asign_name, "stopped ");
-	if(stat == SIGNALED)	strcpy(asign_name, "signaled");
-	if(stat == ACTIVE)		strcpy(asign_name, "active  ");
+	strcpy(asign_name, "UNKNOWN ");
+	if(stat == FINISHED)	strcpy(asign_name, "FINISHED");
+	if(stat == STOPPED)		strcpy(asign_name, "STOPPED ");
+	if(stat == SIGNALED)	strcpy(asign_name, "SIGNALED");
+	if(stat == ACTIVE)		strcpy(asign_name, "ACTIVE  ");
 	return asign_name;
 }
 
@@ -435,12 +435,18 @@ int CambiarVariable(char *var, char *valor, char *e[]){
 	return (pos);
 }
 
+// [!] Parsear bn los parametros de entrada de la shell
 int external_functionality(const int argLen, char *args[PHARAM_LEN], char *envp[], List historicList, List memoryList, List processList){
 	pid_t pid;
+	char *new_args[PHARAM_LEN] = {"execute", NULL};
 
 	// Si es el proceso hijo
 	if((pid=fork())==0){
-		cmdExecute(argLen, args, envp, historicList, memoryList, processList);
+		// Canfigurar los nuevos parámetros
+		for(register int i=1; i<argLen+1; ++i)
+			new_args[i] = args[i-1];
+
+		cmdExecute(argLen+1, new_args, envp, historicList, memoryList, processList);
 		return SCSS_EXIT;	// Slida controlada de la shell
 
 	// Proceso padre -> Esperamos a que el proceso hijo termine

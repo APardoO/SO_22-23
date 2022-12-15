@@ -32,6 +32,10 @@ int print_environ_values(char *env[], char *env_type){
 	return SSUCC_EXIT;
 }
 
+void print_proc_dataItem(t_proc *item){
+	printf("%6d %11s p=%d %4d/%2d/%2d %2d:%2d:%2d %9s (000) %s\n", item->pid, "user?", item->priority, item->time.tm_year+1900, item->time.tm_mon+1, item->time.tm_mday, item->time.tm_hour, item->time.tm_min, item->time.tm_sec, t_stattoa(item->status), item->line);
+}
+
 // ==================== PRÁCTICA 3 ====================
 // [✔] Hecha
 int cmdPriority(const int lenArg, char *args[PHARAM_LEN], char *envp[], List historicList, List memoryList, List processList){
@@ -173,8 +177,9 @@ int cmdExecute(const int lenArg, char *args[PHARAM_LEN], char *envp[], List hist
 		printf("[%s] => %d", nwItem->line, bgp);
 	}
 
+
 	// Ejecución del programa
-	if(execvpe(args[i], args+i, (i==0)? envp : specific_environ)==-1)
+	if(execvpe(args[i], args+i, (i==1)? envp : specific_environ)==-1)
 		printf("[!] Error: %s\n", strerror(errno));
 
 	return SSUCC_EXIT;
@@ -182,7 +187,14 @@ int cmdExecute(const int lenArg, char *args[PHARAM_LEN], char *envp[], List hist
 
 // [!] Hacer
 int cmdListjobs(const int lenArg, char *args[PHARAM_LEN], char *envp[], List historicList, List memoryList, List processList){
-	// Code
+	Lpos auxPos;
+	t_proc *item = NULL;
+
+	for(auxPos=firstElement(processList); auxPos!=NULL; auxPos=nextElement(processList, auxPos)){
+		item = getElement(processList, auxPos);
+		print_proc_dataItem(item);
+	}
+
 	return SSUCC_EXIT;
 }
 
