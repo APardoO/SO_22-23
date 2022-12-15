@@ -40,6 +40,7 @@ int update_data(t_proc *item){
 		if(WIFEXITED(status)){
 			item->status = FINISHED;
 			item->end = WEXITSTATUS(status);
+			item->end = -1;
 		}else if(WIFCONTINUED(status)){
 			item->status = ACTIVE;
 		}else if(WIFSTOPPED(status)){
@@ -63,15 +64,17 @@ void print_proc_dataItem(t_proc *item){
 	printf("%s (%03d) %s\n", t_stattoa(item->status), item->end, item->line);
 }
 
-void imprimir_lista_procesos(List processList){
+void imprimir_lista_procesos(List processList, pid_t pid){
 	Lpos auxPos;
 	t_proc *item = NULL;
 
 	for(auxPos=firstElement(processList); auxPos!=NULL; auxPos=nextElement(processList, auxPos)){
 		item = getElement(processList, auxPos);
-		if(update_data(item))
-			updateElement(processList, auxPos, item);
-		print_proc_dataItem(item);
+		if(pid<0 || pid==item->pid){
+			if(update_data(item))
+				updateElement(processList, auxPos, item);
+			print_proc_dataItem(item);
+		}
 	}
 }
 
@@ -235,7 +238,7 @@ int cmdExecute(const int lenArg, char *args[PHARAM_LEN], char *envp[], List hist
 
 // [✔] Hecha
 int cmdListjobs(const int lenArg, char *args[PHARAM_LEN], char *envp[], List historicList, List memoryList, List processList){
-	imprimir_lista_procesos(processList);
+	imprimir_lista_procesos(processList, -1);
 	return SSUCC_EXIT;
 }
 
@@ -245,8 +248,38 @@ int cmdDeljobs(const int lenArg, char *args[PHARAM_LEN], char *envp[], List hist
 	return SSUCC_EXIT;
 }
 
-// [!] Hacer
+// [✔] Hecha
 int cmdJob(const int lenArg, char *args[PHARAM_LEN], char *envp[], List historicList, List memoryList, List processList){
-	// Code
+	Lpos auxPos;
+	t_proc *item=NULL;
+	int exit_status=0;
+	pid_t pid;
+
+	// En caso de que sea solo un argumento
+	if(lenArg==1)
+		imprimir_lista_procesos(processList, -1);
+
+	// En caso que se desee pasar de segundo plano a primer plano
+	else if(strcmp(args[1], "-fg")==0){
+		if((pid=atoi(args[2]))!=0){
+			// Pasamos a primer plano el proceso indicado
+			waitpid(pid, &exit_status, 0);
+			printf("Proceso %d terminado normalmente. Valor devuelto %d\n", pid, exit_status);
+
+			// Eliminar de la lista
+			for(auxPos=firstElement(processList); auxPos!=NULL; auxPos=nextElement(processList, auxPos)){
+				item = getElement(processList, auxPos);
+				if(pid == item->pid){
+					deletePosition(processList, auxPos);
+					break;
+				}
+			}
+		}
+		else return report_error_exit(EINVAL);
+	
+	// Obtener informacion concreta de un proceso
+	}else if((pid=atoi(args[1]))!=0)
+		imprimir_lista_procesos(processList, pid);
+
 	return SSUCC_EXIT;
 }

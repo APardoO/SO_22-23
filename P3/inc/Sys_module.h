@@ -66,9 +66,9 @@ typedef struct{
 	char *user;					// Usuario que ejecuta el proceso
 	struct tm time;				// Tiempo en el que se ha ejecutado el proceso
 	t_pstat status;				// Estado del proceso
-	char line[COMMAND_BUFFER];	// Linea que ejecuta este proceso
+	char *line;					// Linea que ejecuta este proceso
 	int priority;				// Prioridad del proceso
-	int end;					// Finalización
+	int end;					// Finalización del proceso
 } t_proc;
 
 // ==== Métodos del sistema ====

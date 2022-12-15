@@ -391,6 +391,7 @@ void LlenarMemoria(void *p, size_t cont, unsigned char byte){
 // [!] Crear cuando se cree el tipo de dato
 void freeProcessListItem(void *data){
 	t_proc *item = (t_proc *)data;
+	free(item->line);
 	free(item);
 }
 
@@ -437,7 +438,7 @@ int CambiarVariable(char *var, char *valor, char *e[]){
 }
 
 int external_functionality(const int argLen, char *args[PHARAM_LEN], char *envp[], List historicList, List memoryList, List processList){
-	register int i=0, j=0;
+	register int i=0;
 	int output_code = SSUCC_EXIT, prior=0;
 	char *new_envp[PHARAM_LEN];
 	pid_t pid;
@@ -479,10 +480,7 @@ int external_functionality(const int argLen, char *args[PHARAM_LEN], char *envp[
 			nwItem->priority = prior;
 
 			// Línea del comando
-			for(j=0; j<argLen-1; ++j){
-				strcat(nwItem->line, args[j]);
-				strcat(nwItem->line, " ");
-			}
+			nwItem->line = strdup(args[0]);
 
 			// Insertar en la lista de procesos el nuevo proceso
 			if(!insertElement(processList, nwItem))
