@@ -32,8 +32,47 @@ int print_environ_values(char *env[], char *env_type){
 	return SSUCC_EXIT;
 }
 
+int update_data(t_proc *item){
+	int options = WNOHANG | WUNTRACED | WCONTINUED;
+	int status;
+
+	if(waitpid(item->pid, &status, options)==item->pid){
+		if(WIFEXITED(status)){
+			item->status = FINISHED;
+			item->end = WEXITSTATUS(status);
+		}else if(WIFCONTINUED(status)){
+			item->status = ACTIVE;
+		}else if(WIFSTOPPED(status)){
+			item->status = STOPPED;
+			item->end = WTERMSIG(status);
+		}else if(WIFSIGNALED(status)){
+			item->status = SIGNALED;
+			item->end = WTERMSIG(status);
+		}else
+			item->status = UNKNOWN;
+		return 1;
+	}
+	
+	return 0;
+}
+
 void print_proc_dataItem(t_proc *item){
-	printf("%6d %11s p=%d %4d/%2d/%2d %2d:%2d:%2d %9s (000) %s\n", item->pid, "user?", item->priority, item->time.tm_year+1900, item->time.tm_mon+1, item->time.tm_mday, item->time.tm_hour, item->time.tm_min, item->time.tm_sec, t_stattoa(item->status), item->line);
+	printf("%6d %11s ", item->pid, item->user);
+	printf("p=%d ", item->priority);
+	printf("%4d/%2d/%2d %2d:%2d:%2d ", item->time.tm_year+1900, item->time.tm_mon+1, item->time.tm_mday, item->time.tm_hour, item->time.tm_min, item->time.tm_sec);
+	printf("%s (%03d) %s\n", t_stattoa(item->status), item->end, item->line);
+}
+
+void imprimir_lista_procesos(List processList){
+	Lpos auxPos;
+	t_proc *item = NULL;
+
+	for(auxPos=firstElement(processList); auxPos!=NULL; auxPos=nextElement(processList, auxPos)){
+		item = getElement(processList, auxPos);
+		if(update_data(item))
+			updateElement(processList, auxPos, item);
+		print_proc_dataItem(item);
+	}
 }
 
 // ==================== PRÁCTICA 3 ====================
@@ -194,16 +233,9 @@ int cmdExecute(const int lenArg, char *args[PHARAM_LEN], char *envp[], List hist
 	return SSUCC_EXIT;
 }
 
-// [!] Hacer
+// [✔] Hecha
 int cmdListjobs(const int lenArg, char *args[PHARAM_LEN], char *envp[], List historicList, List memoryList, List processList){
-	Lpos auxPos;
-	t_proc *item = NULL;
-
-	for(auxPos=firstElement(processList); auxPos!=NULL; auxPos=nextElement(processList, auxPos)){
-		item = getElement(processList, auxPos);
-		print_proc_dataItem(item);
-	}
-
+	imprimir_lista_procesos(processList);
 	return SSUCC_EXIT;
 }
 

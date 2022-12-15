@@ -1,5 +1,6 @@
 #define _GNU_SOURCE
 #define _XOPEN_SOURCE_EXTENDED 1
+#include <pwd.h>			// Aporta la definicion de datos de la estructura passwd
 #include <errno.h>			// Librería de captador de errores
 #include <fcntl.h>			// Librería para operaciones con archivos
 #include <stdio.h>			// Librería estándar de entrada/salida
@@ -11,7 +12,6 @@
 #include <sys/stat.h>		// Obtener información de los archivos
 #include <sys/wait.h>		// Incluye funciones wait
 #include <sys/types.h>		// Obtiene los tipos de datos del sistema
-
 
 #include "List.h"			// Librería con las funcionalidades de la lista
 #include "Sys_module.h"		// Ĺibrería de la shell con métodos específicos de cada práctica
@@ -390,16 +390,17 @@ void LlenarMemoria(void *p, size_t cont, unsigned char byte){
 // ==================== PRÁCTICA 3 ====================
 // [!] Crear cuando se cree el tipo de dato
 void freeProcessListItem(void *data){
-	// Una vez implementado el tipo de dato, picar el método
+	t_proc *item = (t_proc *)data;
+	free(item);
 }
 
 char *t_stattoa(t_pstat stat){
 	static char asign_name[9];
-	strcpy(asign_name, "UNKNOWN ");
+	strcpy(asign_name, "UNKNOWN");
 	if(stat == FINISHED)	strcpy(asign_name, "FINISHED");
-	if(stat == STOPPED)		strcpy(asign_name, "STOPPED ");
+	if(stat == STOPPED)		strcpy(asign_name, "STOPPED");
 	if(stat == SIGNALED)	strcpy(asign_name, "SIGNALED");
-	if(stat == ACTIVE)		strcpy(asign_name, "ACTIVE  ");
+	if(stat == ACTIVE)		strcpy(asign_name, "ACTIVE");
 	return asign_name;
 }
 
@@ -435,23 +436,60 @@ int CambiarVariable(char *var, char *valor, char *e[]){
 	return (pos);
 }
 
-// [!] Parsear bn los parametros de entrada de la shell
 int external_functionality(const int argLen, char *args[PHARAM_LEN], char *envp[], List historicList, List memoryList, List processList){
+	register int i=0, j=0;
+	int output_code = SSUCC_EXIT, prior=0;
+	char *new_envp[PHARAM_LEN];
 	pid_t pid;
-	char *new_args[PHARAM_LEN] = {"execute", NULL};
+	t_proc *nwItem=NULL;
 
+	// Obteniendo las variables de entorno
+	for(i=0; BuscarVariable(args[i], envp)!=-1; ++i)
+		new_envp[i] = args[i];
+
+	// Creando el proceso
 	// Si es el proceso hijo
-	if((pid=fork())==0){
-		// Canfigurar los nuevos parámetros
-		for(register int i=1; i<argLen+1; ++i)
-			new_args[i] = args[i-1];
+	if((pid=fork()) == -1)
+		return report_error_exit(ESRCH);
 
-		cmdExecute(argLen+1, new_args, envp, historicList, memoryList, processList);
+	// Proceso hijo
+	else if(pid==0){
+		// Parseando el segundo plano del programa
+		if(args[argLen-1][0] == '&')
+			args[argLen-1] = NULL;
+
+		if(i==0)	output_code = execvp(args[i], args+i);
+		else		output_code = execvpe(args[i], args+i, new_envp);
 		return SCSS_EXIT;	// Slida controlada de la shell
 
-	// Proceso padre -> Esperamos a que el proceso hijo termine
-	}else if(pid != -1)
-		waitpid(pid, NULL, 0);
+	// Proceso padre
+	}else if(pid>0){
+		if(args[argLen-1][0] == '&'){
+			if((nwItem=(t_proc *)malloc(sizeof(t_proc)))==NULL){
+				free(nwItem);
+				return report_error_exit(ENOMEM);
+			}
 
-	return SSUCC_EXIT;
+			// Crear el item
+			nwItem->pid = pid;
+			nwItem->user = getpwuid((uid_t)getuid())->pw_name;
+			nwItem->time = currentTime();
+			nwItem->status = ACTIVE;
+			nwItem->end = ACTIVE;
+			nwItem->priority = prior;
+
+			// Línea del comando
+			for(j=0; j<argLen-1; ++j){
+				strcat(nwItem->line, args[j]);
+				strcat(nwItem->line, " ");
+			}
+
+			// Insertar en la lista de procesos el nuevo proceso
+			if(!insertElement(processList, nwItem))
+				printf("[!] Error: %s\n", strerror(ENOMEM));
+		}else
+			waitpid(pid, NULL, 0);
+	}
+
+	return output_code;
 }

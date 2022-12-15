@@ -57,16 +57,18 @@ typedef struct{
 } t_mem;
 
 // Tipo de estado de los procesos
-enum proc_stats {UNKNOWN, FINISHED, STOPPED, SIGNALED, ACTIVE};
+enum proc_stats {ACTIVE, STOPPED, SIGNALED, FINISHED, UNKNOWN};
 typedef enum proc_stats t_pstat;
 
 // Tipos de información almacenada en los items de la lista de procesos
 typedef struct{
 	pid_t pid;					// PID del nuevo proceso
+	char *user;					// Usuario que ejecuta el proceso
 	struct tm time;				// Tiempo en el que se ha ejecutado el proceso
 	t_pstat status;				// Estado del proceso
 	char line[COMMAND_BUFFER];	// Linea que ejecuta este proceso
 	int priority;				// Prioridad del proceso
+	int end;					// Finalización
 } t_proc;
 
 // ==== Métodos del sistema ====
