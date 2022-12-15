@@ -131,9 +131,9 @@ int cmdFork(const int lenArg, char *args[PHARAM_LEN], char *envp[], List histori
 
 // [+] Hacer
 int cmdExecute(const int lenArg, char *args[PHARAM_LEN], char *envp[], List historicList, List memoryList, List processList){
-	register int i=1, j=1;
+	register int i=1, j=1,n,pid;
 	register char bgp=0;
-	char *specific_environ[PHARAM_LEN];
+	char *specific_environ[PHARAM_LEN], *token=NULL;
 	t_proc *nwItem=NULL;
 
 	// Si solo se llama a esta función
@@ -145,7 +145,16 @@ int cmdExecute(const int lenArg, char *args[PHARAM_LEN], char *envp[], List hist
 		specific_environ[i-1] = args[i];
 
 	// Comprobando la flag de prioridad
+	if(lenArg>=3){
+		for(n=2;n<lenArg-1;n++){
+			if(strchr(args[n],'@')!=NULL){
+				if((*token=strtok(args[n],"@")!=NULL))
+					setpriority(PRIO_PROCESS,pid=getpid(),atoi(token));
+				
+			}
 
+		}
+	}
 	// Comprobando la flag de segundo plano
 	if(args[lenArg-1][0]=='&'){
 		if((nwItem = (t_proc *)malloc(sizeof(t_proc)))==NULL){
