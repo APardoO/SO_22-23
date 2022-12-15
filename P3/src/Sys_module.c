@@ -387,13 +387,11 @@ void LlenarMemoria(void *p, size_t cont, unsigned char byte){
 }
 
 // ==================== PRÁCTICA 3 ====================
-// [!] Crear cuando se cree el tipo de dato
 void freeProcessListItem(void *data){
 	t_proc *item = (t_proc *)data;
 	free(item->line);
 	free(item);
 }
-
 char *t_stattoa(t_pstat stat){
 	static char asign_name[9];
 	strcpy(asign_name, "UNKNOWN");
@@ -403,7 +401,6 @@ char *t_stattoa(t_pstat stat){
 	if(stat == ACTIVE)		strcpy(asign_name, "ACTIVE");
 	return asign_name;
 }
-
 int BuscarVariable(char *var, char *e[]){
 	int pos=0;
 	char aux[PHARAM_LEN];
@@ -419,7 +416,6 @@ int BuscarVariable(char *var, char *e[]){
 	errno=ENOENT;   // no hay tal variable
 	return(-1);
 }
-
 int CambiarVariable(char *var, char *valor, char *e[]){
 	int pos;
 	char *aux;

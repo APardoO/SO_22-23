@@ -300,7 +300,6 @@ t_mem *search_mem_pos(List memoryList, void *memdir){
 }
 
 // ================ COMANDOS PRÁCTICA 2 ===============
-// [+] Se puede optimizar
 int cmdAllocate(const int lenArg, char *args[PHARAM_LEN], char *envp[], List historicList, List memoryList, List processList){
 	const register short ctpos=16;
 	size_t size;
@@ -353,7 +352,6 @@ int cmdAllocate(const int lenArg, char *args[PHARAM_LEN], char *envp[], List his
 		if(lenArg>1)	printf("uso: allocate %s ....\n", cmd_help[ctpos].cmd_pharams);
 	return SSUCC_EXIT;
 }
-// [+] Se puede optimizar
 int cmdDeallocate(const int lenArg, char *args[PHARAM_LEN], char *envp[], List historicList, List memoryList, List processList){
 	size_t tam;
 	key_t llave;
@@ -400,7 +398,6 @@ int cmdDeallocate(const int lenArg, char *args[PHARAM_LEN], char *envp[], List h
 	}
 	return SSUCC_EXIT;
 }
-// [!] Fallos de memoria, comprobar las trazas
 int cmdIo(const int lenArg, char *args[PHARAM_LEN], char *envp[], List historicList, List memoryList, List processList){	// [!]
 	int t;
 	char *ptr;
@@ -446,7 +443,6 @@ int cmdMemdump(const int lenArg, char *args[PHARAM_LEN], char *envp[], List hist
 	print_memory_block((char *)strtol(args[1], NULL, 16), (args[2])? (int)strtol(args[2], NULL, 10) : -1, memoryList);
 	return SSUCC_EXIT;
 }
-// [+] Se puede optimizar
 int cmdMemfill(const int lenArg, char *args[PHARAM_LEN], char *envp[], List historicList, List memoryList, List processList){
 	size_t size = (unsigned long)0;
 	unsigned char c = 'A';

@@ -5,28 +5,8 @@
 		-> Hugo Correa Blanco		[hugo.correa.blanco@udc.es]
 	Grupo: 2.1
 	============================================================== */
-//#include <grp.h>			// Aporta la definicion de datos de los grupos de linux
-//#include <pwd.h>			// Aporta la definicion de datos de la estructura passwd
-//#include <time.h>			// Librería de tiempo del sistema
-//#include <ctype.h>			// Incluye funciones para comprobar si es un numero
-//#include <errno.h>			// Librería de captador de errores
-//#include <fcntl.h>			// Librería para operaciones con archivos
-//#include <stdio.h>			// Librería estándar de entrada/salida
-//#include <dirent.h>			// Librería que importa las entradas de directorios
 #include <signal.h>			// Señales de shell
-//#include <stdlib.h>			// Librería de conversión, memoria, procesos...
-//#include <string.h>			// Librería de tratamiento de "strings"
-//#include <unistd.h>			// Librería de funcionalidades del sistema
-//#include <sys/shm.h>		// Librería con utilidades para la memoria compartida
-//#include <sys/mman.h>		// Librería para la declaración de gestiones de memoria
 #include <sys/stat.h>		// Obtener información de los archivos
-//#include <sys/wait.h>		// Incluye funciones wait
-//#include <sys/types.h>		// Obtiene los tipos de datos del sistema
-//#include <sys/utsname.h>	// Obtiene informacñon del sistema [LINUX]
-
-
-//#include "List.h"			// Librería con las funcionalidades de la lista
-//#include "Sys_module.h"		// Ĺibrería de la shell con métodos específicos de cada práctica
 
 #include "p0.h"				// Librería con las cabeceras de la práctica 0
 #include "p1.h"				// Librería con las cabeceras de la práctica 1
@@ -202,8 +182,8 @@ struct SEN sigstrnum[]={
 int main(int argc, char const *argv[], char *envp[]){
 	int argLen=0;							// Número de parametros del comadno introducido
 	int exitCode=SSUCC_EXIT;				// Código de salida de los comandos
-	char *args[PHARAM_LEN];					// Parámetros del comando introducido
-	char linea[COMMAND_BUFFER];				// String con el comando introducido
+	char *args[PHARAM_LEN]={NULL};			// Parámetros del comando introducido
+	char linea[COMMAND_BUFFER]="";			// String con el comando introducido
 	
 	List historicList = NULL;				// Lista del histórico de comandos
 	List memoryList = NULL;					// Lista para la memoria reservada

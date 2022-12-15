@@ -31,7 +31,6 @@ int print_environ_values(char *env[], char *env_type){
 		printf("%p->%s[%d]=(%p) %s\n", &env[i], env_type, i, env[i], env[i]);
 	return SSUCC_EXIT;
 }
-
 int update_data(t_proc *item){
 	int options = WNOHANG | WUNTRACED | WCONTINUED;
 	int status;
@@ -56,14 +55,12 @@ int update_data(t_proc *item){
 	
 	return 0;
 }
-
 void print_proc_dataItem(t_proc *item){
 	printf("%6d %11s ", item->pid, item->user);
 	printf("p=%d ", item->priority);
 	printf("%4d/%2d/%2d %2d:%2d:%2d ", item->time.tm_year+1900, item->time.tm_mon+1, item->time.tm_mday, item->time.tm_hour, item->time.tm_min, item->time.tm_sec);
 	printf("%s (%03d) %s\n", t_stattoa(item->status), item->end, item->line);
 }
-
 void imprimir_lista_procesos(List processList, pid_t pid){
 	Lpos auxPos;
 	t_proc *item = NULL;
@@ -77,7 +74,6 @@ void imprimir_lista_procesos(List processList, pid_t pid){
 		}
 	}
 }
-
 void del_process_by_status(List processList, t_pstat status){
 	t_proc *item;
 	Lpos auxPos=firstElement(processList);
@@ -99,7 +95,6 @@ void del_process_by_status(List processList, t_pstat status){
 }
 
 // ==================== PRÁCTICA 3 ====================
-// [✔] Hecha
 int cmdPriority(const int lenArg, char *args[PHARAM_LEN], char *envp[], List historicList, List memoryList, List processList){
 	
 	int priority, pid;
@@ -119,8 +114,6 @@ int cmdPriority(const int lenArg, char *args[PHARAM_LEN], char *envp[], List his
     
     return SSUCC_EXIT;
 }
-
-// [✔] Hecha
 int cmdShowvar(const int lenArg, char *args[PHARAM_LEN], char *envp[], List historicList, List memoryList, List processList){
 	
 	int pos;
@@ -138,8 +131,6 @@ int cmdShowvar(const int lenArg, char *args[PHARAM_LEN], char *envp[], List hist
     
     return SSUCC_EXIT;
 }
-
-// [✔] Hecha
 int cmdChangevar(const int lenArg, char *args[PHARAM_LEN], char *envp[], List historicList, List memoryList, List processList){
 	char *aux=malloc(MAX_PATH);
     if(lenArg>1){
@@ -162,8 +153,6 @@ int cmdChangevar(const int lenArg, char *args[PHARAM_LEN], char *envp[], List hi
     
     return SSUCC_EXIT;
 }
-
-// [✔] Hecha
 int cmdShowenv(const int lenArg, char *args[PHARAM_LEN], char *envp[], List historicList, List memoryList, List processList){
 	if(lenArg==1)
 		return print_environ_values(envp, "main args3");
@@ -178,8 +167,6 @@ int cmdShowenv(const int lenArg, char *args[PHARAM_LEN], char *envp[], List hist
 	printf("[!] Error: %s\n", strerror(EINVAL));
 	return FSUCC_EXIT;
 }
-
-// [✔] Hecha
 int cmdFork(const int lenArg, char *args[PHARAM_LEN], char *envp[], List historicList, List memoryList, List processList){
 	int pid=fork();
 	if(pid==0)
@@ -255,14 +242,10 @@ int cmdExecute(const int lenArg, char *args[PHARAM_LEN], char *envp[], List hist
 
 	return SSUCC_EXIT;
 }
-
-// [✔] Hecha
 int cmdListjobs(const int lenArg, char *args[PHARAM_LEN], char *envp[], List historicList, List memoryList, List processList){
 	imprimir_lista_procesos(processList, -1);
 	return SSUCC_EXIT;
 }
-
-// [✔] Hecha
 int cmdDeljobs(const int lenArg, char *args[PHARAM_LEN], char *envp[], List historicList, List memoryList, List processList){
 	if(lenArg==1)
 		imprimir_lista_procesos(processList, -1);
@@ -278,8 +261,6 @@ int cmdDeljobs(const int lenArg, char *args[PHARAM_LEN], char *envp[], List hist
 
 	return SSUCC_EXIT;
 }
-
-// [✔] Hecha
 int cmdJob(const int lenArg, char *args[PHARAM_LEN], char *envp[], List historicList, List memoryList, List processList){
 	Lpos auxPos;
 	t_proc *item=NULL;

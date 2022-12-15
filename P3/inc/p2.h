@@ -20,11 +20,11 @@ void print_memory_block(char *pos, int bytes, List memoryList);			// Mapea los '
 t_mem *search_mem_pos(List memoryList, void *memdir);					// Comprueba si en la lista, hay un elemento que tenga la direccion pasada como argumento. Si la hay, la retorna
 
 // ===== Programas propios de la shell =====
-/*[+]*/int cmdAllocate(const int lenArg, char *args[PHARAM_LEN], char *envp[], List historicList, List memoryList, List processList);
-/*[+]*/int cmdDeallocate(const int lenArg, char *args[PHARAM_LEN], char *envp[], List historicList, List memoryList, List processList);
-/*[!]*/int cmdIo(const int lenArg, char *args[PHARAM_LEN], char *envp[], List historicList, List memoryList, List processList);
+int cmdAllocate(const int lenArg, char *args[PHARAM_LEN], char *envp[], List historicList, List memoryList, List processList);
+int cmdDeallocate(const int lenArg, char *args[PHARAM_LEN], char *envp[], List historicList, List memoryList, List processList);
+int cmdIo(const int lenArg, char *args[PHARAM_LEN], char *envp[], List historicList, List memoryList, List processList);
 int cmdMemdump(const int lenArg, char *args[PHARAM_LEN], char *envp[], List historicList, List memoryList, List processList);
-/*[+]*/int cmdMemfill(const int lenArg, char *args[PHARAM_LEN], char *envp[], List historicList, List memoryList, List processList);
+int cmdMemfill(const int lenArg, char *args[PHARAM_LEN], char *envp[], List historicList, List memoryList, List processList);
 int cmdMemory(const int lenArg, char *args[PHARAM_LEN], char *envp[], List historicList, List memoryList, List processList);
 int cmdRecurse(const int lenArg, char *args[PHARAM_LEN], char *envp[], List historicList, List memoryList, List processList);
 

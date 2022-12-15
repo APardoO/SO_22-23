@@ -97,6 +97,7 @@ char LetraTF(mode_t m);																	// Codigo de ejemplo p1
 char * ConvierteModo2(mode_t m);														// Codigo de ejemplo p1
 
 // ==== P2 ====
+void freeMemoryListItem(void *data);													// Libera memoria de la lista de memoria
 void * ObtenerMemoriaShmget(key_t clave, size_t tam, t_mem *item, List memoryList);		// Codigo de ejemplo p2
 void * MapearFichero(char * fichero, int protection, List memoryList);					// Codigo de ejemplo p2
 void Do_pmap();																			// Codigo de ejemplo p2
@@ -107,26 +108,13 @@ void Recursiva(int n);																	// Codigo de ejemplo p2
 int LeerFichero(char *fich, void *p, int n);											// Codigo de ejemplo p2
 int EscribirFichero(char *fich, void *p, int n);										// Codigo de ejemplo p2
 void LlenarMemoria(void *p, size_t cont, unsigned char byte);							// Codigo de ejemplo p2
-void freeMemoryListItem(void *data);													// Libera memoria de la lista de memoria
 
 // ==== P3 ====
-/*[!]*/void freeProcessListItem(void *data);											// Libera memoria de la lista de procesos
+void freeProcessListItem(void *data);											// Libera memoria de la lista de procesos
 char *t_stattoa(t_pstat stat);															// Devuelve un string con el tipo de estado del proceso generado
 int BuscarVariable(char *var, char *e[]);												// Busca una variable en el entorno que se le pasa como parámetro
 int CambiarVariable(char *var, char *valor, char *e[]);									// Cambia una variable en el entorno que se le pasa como parámetro lo hace directamente, no usa putenv
 
 int external_functionality(const int argLen, char *args[PHARAM_LEN], char *envp[], List historicList, List memoryList, List processList);	// Ejecuta un ejecutable externo de ls shell
-
-/*
-	En caso de que se ejecute en segundo plano -> Se añade a la lista de procesos
-
-	Retorno del fork():
-		Todo correcto:
-			-> Retorno al padre: PID del hijo
-			-> Retorno al hijo: 0
-		Existe algún error:
-			-> Retorno al padre: -1
-			-> (Hijo no creado)
-*/
 
 #endif //SYS_MODULE_H
