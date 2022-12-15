@@ -83,8 +83,7 @@ int report_error_exit(int errorCode){
 	return FSUCC_EXIT;
 }
 void printPrompt(int exitStatus){
-	printf("[%s]~$ ", (exitStatus==SSUCC_EXIT)? "✔" : "✗");	// Prompt de la shell
-	//printf("[#]~$ ");
+	printf("[#]~$ ");
 	//printf("-> ");	// Prompt de la shell de referencia
 }
 void getCmdLine(char linea[COMMAND_BUFFER], int *argLen, char *args[PHARAM_LEN], List historicList, List memoryList, List processList){
@@ -439,7 +438,7 @@ int CambiarVariable(char *var, char *valor, char *e[]){
 
 int external_functionality(const int argLen, char *args[PHARAM_LEN], char *envp[], List historicList, List memoryList, List processList){
 	register int i=0, j=0;
-	int output_code = SSUCC_EXIT, prior=0;
+	int output_code=SSUCC_EXIT, prior=0;
 	char *new_envp[PHARAM_LEN];
 	static char linea[COMMAND_BUFFER]="";
 	pid_t pid;
@@ -450,14 +449,17 @@ int external_functionality(const int argLen, char *args[PHARAM_LEN], char *envp[
 		new_envp[i] = args[i];
 
 	// Creando el proceso
-	// Si es el proceso hijo
+	// EL proceso no se pudo crear correctamente
 	if((pid=fork()) == -1)
 		return report_error_exit(ESRCH);
 
 	// Proceso hijo
 	else if(pid==0){
-		// Parseando el segundo plano del programa
-		if(args[argLen-1][0] == '&')
+		// Parseando el segundo plano del programa y la prioridad del programa 
+		if(args[argLen-2] && args[argLen-2][0] == '@')
+			args[argLen-2] = NULL;
+
+		if(args[argLen-1] && (args[argLen-1][0] == '&' || args[argLen-1][0] == '@'))
 			args[argLen-1] = NULL;
 
 		if(i==0)	output_code = execvp(args[i], args+i);
@@ -472,6 +474,20 @@ int external_functionality(const int argLen, char *args[PHARAM_LEN], char *envp[
 				return report_error_exit(ENOMEM);
 			}
 
+			// Línea del comando
+			strcpy(linea, "");
+			for(j=0; j<argLen-1; ++j){
+				strcat(linea, args[j]);
+				strcat(linea, " ");
+			}
+
+			// Parseando la prioridad del proceso
+			if(args[argLen-2] && args[argLen-2][0]=='@'){
+				args[argLen-2][0] = '0';
+				prior = atoi(args[argLen-2]);
+				args[argLen-2] = NULL;
+			}
+
 			// Crear el item
 			nwItem->pid = pid;
 			nwItem->user = getpwuid((uid_t)getuid())->pw_name;
@@ -479,21 +495,14 @@ int external_functionality(const int argLen, char *args[PHARAM_LEN], char *envp[
 			nwItem->status = ACTIVE;
 			nwItem->end = ACTIVE;
 			nwItem->priority = prior;
-
-			// Línea del comando
-			strcpy(linea, "");
-			for(j=0; j<argLen-1; ++j){
-				strcat(linea, args[j]);
-				strcat(linea, " ");
-			}
 			nwItem->line = strdup(linea);
 
 			// Insertar en la lista de procesos el nuevo proceso
 			if(!insertElement(processList, nwItem))
 				printf("[!] Error: %s\n", strerror(ENOMEM));
 		}else
-			waitpid(pid, NULL, 0);
+			waitpid(pid, &output_code, 0);
 	}
 
-	return output_code;
+	return (output_code == SCSS_EXIT)? SSUCC_EXIT : FSUCC_EXIT ;
 }
