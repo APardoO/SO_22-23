@@ -3,6 +3,7 @@ TARGET = $(BIN_DIR)/shell
 OBJ_DIR = obj
 BIN_DIR = bin
 INCDIR = inc
+INFODIR = info
 SRC_DIR = src
 TEST_DIR = test
 
@@ -53,3 +54,5 @@ delivery: $(TARGET)
 	cp -r $(SRC_DIR)/* $(DELIVERY_DIR)
 	cp -r $(INCDIR)/* $(DELIVERY_DIR)
 	cp -r $(TARGET) $(DELIVERY_DIR)
+	cp $(INFODIR)/makefile $(DELIVERY_DIR)
+	zip -r p3.zip $(DELIVERY_DIR)

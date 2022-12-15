@@ -177,13 +177,9 @@ int cmdFork(const int lenArg, char *args[PHARAM_LEN], char *envp[], List histori
 	else waitpid(pid,NULL,0);
 	return SSUCC_EXIT;
 }
-
-// [+] Hacer
 int cmdExecute(const int lenArg, char *args[PHARAM_LEN], char *envp[], List historicList, List memoryList, List processList){
-	register int i=1, j=1,n,pid;
-	register char bgp=0;
-	char *specific_environ[PHARAM_LEN], *token=NULL;
-	t_proc *nwItem=NULL;
+	register int i=1;
+	char *specific_environ[PHARAM_LEN];
 
 	// Si solo se llama a esta función
 	if(lenArg==1)
@@ -193,52 +189,21 @@ int cmdExecute(const int lenArg, char *args[PHARAM_LEN], char *envp[], List hist
 	for(i=1; BuscarVariable(args[i], envp)!=-1; ++i)
 		specific_environ[i-1] = args[i];
 
-	// Comprobando la flag de prioridad
-	if(lenArg>=3){
-		for(n=2;n<lenArg-1;n++){
-			if(strchr(args[n],'@')!=NULL){
-				if((*token=strtok(args[n],"@")!=NULL))
-					setpriority(PRIO_PROCESS,pid=getpid(),atoi(token));
-				
-			}
+	// Parseando el segundo plano del programa y la prioridad del programa 
+	if(args[lenArg-2] && args[lenArg-2][0] == '@')
+		args[lenArg-2] = NULL;
 
-		}
-	}
-	// Comprobando la flag de segundo plano
-	if(args[lenArg-1][0]=='&'){
-		if((nwItem = (t_proc *)malloc(sizeof(t_proc)))==NULL){
-			free(nwItem);
-			return report_error_exit(ENOMEM);
-		}
-
-		// Crear el item
-		nwItem->pid = getpid();
-		nwItem->time = currentTime();
-		nwItem->status = ACTIVE;
-		nwItem->priority = 0;
-
-		// Crear la línea pasada como parametro
-		for(j=1; j<lenArg; ++j){
-			strcpy(nwItem->line, args[j]);
-			if(j!=lenArg-1)
-				strcpy(nwItem->line, " ");
-		}
-
-		// Insertar en la lista de procesos el nuevo proceso
-		if(!insertElement(historicList, nwItem))
-			printf("[!] Error: %s\n", strerror(ENOMEM));
-
-		args[lenArg-1]=NULL;
-
-		// Cambiar la flag a activo
-		bgp=1;
-		printf("[%s] => %d", nwItem->line, bgp);
-	}
-
+	if(args[lenArg-1] && (args[lenArg-1][0] == '&' || args[lenArg-1][0] == '@'))
+		args[lenArg-1] = NULL;
 
 	// Ejecución del programa
-	if(execvpe(args[i], args+i, (i==1)? envp : specific_environ)==-1)
-		printf("[!] Error: %s\n", strerror(errno));
+	if(i==1){
+		if(execvp(args[i], args+i)==-1)
+			printf("[!] Error: %s\n", strerror(errno));
+	}else{
+		if(execvpe(args[i], args+i, specific_environ)==-1)
+			printf("[!] Error: %s\n", strerror(errno));
+	}
 
 	return SSUCC_EXIT;
 }
