@@ -438,9 +438,10 @@ int CambiarVariable(char *var, char *valor, char *e[]){
 }
 
 int external_functionality(const int argLen, char *args[PHARAM_LEN], char *envp[], List historicList, List memoryList, List processList){
-	register int i=0;
+	register int i=0, j=0;
 	int output_code = SSUCC_EXIT, prior=0;
 	char *new_envp[PHARAM_LEN];
+	static char linea[COMMAND_BUFFER]="";
 	pid_t pid;
 	t_proc *nwItem=NULL;
 
@@ -480,7 +481,12 @@ int external_functionality(const int argLen, char *args[PHARAM_LEN], char *envp[
 			nwItem->priority = prior;
 
 			// Línea del comando
-			nwItem->line = strdup(args[0]);
+			strcpy(linea, "");
+			for(j=0; j<argLen-1; ++j){
+				strcat(linea, args[j]);
+				strcat(linea, " ");
+			}
+			nwItem->line = strdup(linea);
 
 			// Insertar en la lista de procesos el nuevo proceso
 			if(!insertElement(processList, nwItem))

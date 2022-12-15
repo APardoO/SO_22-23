@@ -39,8 +39,8 @@ int update_data(t_proc *item){
 	if(waitpid(item->pid, &status, options)==item->pid){
 		if(WIFEXITED(status)){
 			item->status = FINISHED;
+			item->priority = -1;
 			item->end = WEXITSTATUS(status);
-			item->end = -1;
 		}else if(WIFCONTINUED(status)){
 			item->status = ACTIVE;
 		}else if(WIFSTOPPED(status)){
@@ -74,6 +74,26 @@ void imprimir_lista_procesos(List processList, pid_t pid){
 			if(update_data(item))
 				updateElement(processList, auxPos, item);
 			print_proc_dataItem(item);
+		}
+	}
+}
+
+void del_process_by_status(List processList, t_pstat status){
+	t_proc *item;
+	Lpos auxPos=firstElement(processList);
+
+	while(auxPos!=NULL){
+		for(auxPos=firstElement(processList); auxPos!=NULL; auxPos=nextElement(processList, auxPos)){
+			item = getElement(processList, auxPos);
+			
+			if(update_data(item))
+				updateElement(processList, auxPos, item);
+			
+			if(item->status == status){
+				item = deletePosition(processList, auxPos);
+				freeProcessListItem(item);
+				break;
+			}
 		}
 	}
 }
@@ -242,9 +262,20 @@ int cmdListjobs(const int lenArg, char *args[PHARAM_LEN], char *envp[], List his
 	return SSUCC_EXIT;
 }
 
-// [!] Hacer
+// [✔] Hecha
 int cmdDeljobs(const int lenArg, char *args[PHARAM_LEN], char *envp[], List historicList, List memoryList, List processList){
-	// Code
+	if(lenArg==1)
+		imprimir_lista_procesos(processList, -1);
+
+	else if(strcmp(args[1], "-term")==0)
+		del_process_by_status(processList, FINISHED);
+	
+	else if(strcmp(args[1], "-sig")==0)
+		del_process_by_status(processList, SIGNALED);
+
+	else
+		return report_error_exit(EINVAL);
+
 	return SSUCC_EXIT;
 }
 
